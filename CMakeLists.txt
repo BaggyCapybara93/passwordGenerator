@@ -31,6 +31,7 @@ set(SOURCES
 
 set(HEADERS 
     include/random.hpp
+    include/ui.hpp
 )
 
 add_library(rng_lib STATIC ${SOURCES})
