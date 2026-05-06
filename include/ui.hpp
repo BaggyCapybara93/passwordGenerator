@@ -3,14 +3,16 @@
 #include <iostream>
 #include <vector>
 
-namespace UI {
+struct Settings {
+    size_t desiredLength = 12;
+    int numPasswords = 1;
+    bool reqUppercase = true;
+    bool reqLowercase = true;
+    bool reqDigits = true;
+    bool reqSpecial = true;
+};
 
-    extern size_t desiredLength_;
-    extern int numPasswords_;
-    extern bool reqUppercase_ ;
-    extern bool reqLowercase_;
-    extern bool reqDigits_;
-    extern bool reqSpecial_;
+namespace UI {
 
     enum class Color{
         Default, Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
@@ -28,5 +30,5 @@ namespace UI {
 
     bool boolInput(const std::string& userPrompt);
 
-    bool parseArgs(int argc, char* arg[]);
+    bool parseArgs(int argc, char* arg[], Settings& settings);
 };

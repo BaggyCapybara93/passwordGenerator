@@ -4,13 +4,6 @@
 
 namespace UI{
 
-    size_t desiredLength_ = 12;
-    int numPasswords_ = 1;
-    bool reqUppercase_ = true;
-    bool reqLowercase_ = true;
-    bool reqDigits_ = true;
-    bool reqSpecial_ = true;
-
     const char* getColor(UI::Color c) {
         switch (c) {
             case Color::Black:   return "30"; break;
@@ -81,13 +74,13 @@ namespace UI{
         return false; // Default if invalid
     }
     
-    bool parseArgs(int argc, char* arg[]) {
+    bool parseArgs(int argc, char* arg[], Settings& settings) {
         // Reset configuration to defaults before parsing
-        desiredLength_ = 12;
-        reqUppercase_ = true;
-        reqLowercase_ = true;
-        reqDigits_ = true;
-        reqSpecial_ = true;
+        settings.desiredLength = 12;
+        settings.reqUppercase = true;
+        settings.reqLowercase = true;
+        settings.reqDigits = true;
+        settings.reqSpecial = true;
     
         std::cout << "\n--- Parsing Command Line Arguments ---\n";
     
@@ -111,7 +104,7 @@ namespace UI{
                 if (i + 1 < argc) {
                     try {
                         // Safely convert the string argument to size_t
-                        desiredLength_ = std::stoul(arg[i + 1]);
+                        settings.desiredLength = std::stoul(arg[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid length specified. Use a valid number.\n";
@@ -124,22 +117,22 @@ namespace UI{
             }
             
             else if (currentArg == "--no-uppercase" || currentArg == "-u") {
-                reqUppercase_ = false;
+                settings.reqUppercase = false;
             }
             else if (currentArg == "--no-lowercase" || currentArg == "-l") {
-                reqLowercase_ = false;
+                settings.reqLowercase = false;
             }
             else if (currentArg == "--no-digits" || currentArg == "-d") {
-                reqDigits_ = false;
+                settings.reqDigits = false;
             }
             else if (currentArg == "--no-special" || currentArg == "-s") {
-                reqSpecial_ = false;
+                settings.reqSpecial = false;
             }
             else if (currentArg == "--num-passwords" || currentArg == "-nP") {
                 if (i + 1 < argc) {
                     try {
                         // Safely convert the string argument to size_t
-                        numPasswords_ = std::stoul(arg[i + 1]);
+                        settings.numPasswords = std::stoul(arg[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid num-passwords specified. Use a valid number.\n";

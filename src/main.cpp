@@ -5,19 +5,22 @@
 
 int main(int argc, char* arg[]){
     RNG::seed();
-    if (!UI::parseArgs(argc, arg)) {
+
+    Settings settings;
+
+    if (!UI::parseArgs(argc, arg, settings)) {
         return 1; 
     }
 
-    for (int i = 1; i <= UI::numPasswords_; i++){
+    for (int i = 1; i <= settings.numPasswords; i++){
         std::string password;
         try {
             password = RNG::generate(
-                UI::desiredLength_, 
-                UI::reqUppercase_, 
-                UI::reqLowercase_, 
-                UI::reqDigits_, 
-                UI::reqSpecial_
+                settings.desiredLength, 
+                settings.reqUppercase, 
+                settings.reqLowercase, 
+                settings.reqDigits, 
+                settings.reqSpecial
             );
         } catch (const std::invalid_argument& e) {
             UI::printColored("Error generating password: " + std::string(e.what()), UI::Color::Red);
