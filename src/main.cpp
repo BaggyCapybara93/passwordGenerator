@@ -4,13 +4,13 @@
 
 
 int main(int argc, char* arg[]){
-    RNG::seed();
-
     Settings settings;
 
     if (!UI::parseArgs(argc, arg, settings)) {
         return 1; 
     }
+
+    RNG::seed(settings.seed); 
 
     for (int i = 1; i <= settings.numPasswords; i++){
         std::string password;

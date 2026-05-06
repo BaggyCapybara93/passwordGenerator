@@ -11,10 +11,16 @@ static const std::string specialString = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
 std::mt19937_64 RNG::engine_;
 std::random_device RNG::device_;
 
-void RNG::seed(){
-    std::cout << "Generating seed for number generator...";
-    engine_.seed(device_());
-    std::cout << "Completed." << std::endl;
+void RNG::seed(std::optional<uint64_t> seedValue){
+    if (seedValue.has_value()) {
+        uint64_t specificSeed = seedValue.value();
+        std::cout << "Seeding RNG with specific value: " << specificSeed << "..." << std::endl;
+        engine_.seed(specificSeed);
+    } else {
+        std::cout << "Generating system entropy for RNG..." << std::endl;
+        engine_.seed(device_());
+    }
+    std::cout << "Seed completed." << std::endl;
 }
 
 char RNG::selectChar(const std::vector<char>& charset){

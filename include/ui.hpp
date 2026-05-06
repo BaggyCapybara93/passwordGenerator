@@ -5,6 +5,7 @@
 
 struct Settings {
     size_t desiredLength = 12;
+    std::optional<uint64_t> seed = std::nullopt;
     int numPasswords = 1;
     bool reqUppercase = true;
     bool reqLowercase = true;

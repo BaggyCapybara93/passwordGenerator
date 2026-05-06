@@ -9,7 +9,7 @@ class RNG{
         static std::random_device device_;
     
     public:
-        static void seed();
+        static void seed(std::optional<uint64_t> seedValue);
 
         static std::string generate(
             size_t length,

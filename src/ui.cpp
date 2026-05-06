@@ -57,7 +57,8 @@ namespace UI{
                           << "  --no-uppercase Disable uppercase requirement\n"
                           << "  --no-lowercase Disable lowercase requirement\n"
                           << "  --no-digits    Disable digit requirement\n"
-                          << "  --no-special   Disable special char requirement\n";
+                          << "  --no-special   Disable special char requirement\n"
+                          << "  --seed   Use deterministic seed\n";
                 return false;
             }
     
@@ -93,8 +94,7 @@ namespace UI{
             else if (currentArg == "--num-passwords" || currentArg == "-nP") {
                 if (i + 1 < argc) {
                     try {
-                        // Safely convert the string argument to size_t
-                        settings.numPasswords = std::stoul(arg[i + 1]);
+                        settings.numPasswords = std::stoi(arg[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid num-passwords specified. Use a valid number.\n";
@@ -102,6 +102,21 @@ namespace UI{
                     }
                 } else {
                     std::cerr << "Error: --num-passwords requires a following value.\n";
+                    return false;
+                }
+            }else if (currentArg == "--seed") {
+                if (i + 1 < argc) {
+                    try {
+                        // Parse the seed as a 64-bit unsigned integer
+                        uint64_t seed_val = std::stoull(arg[i + 1]);
+                        settings.seed = seed_val;
+                        i++;
+                    } catch (const std::exception& e) {
+                        std::cerr << "Error: Invalid seed value specified. Use a valid unsigned integer.\n";
+                        return false;
+                    }
+                } else {
+                    std::cerr << "Error: --seed requires a following value.\n";
                     return false;
                 }
             }
