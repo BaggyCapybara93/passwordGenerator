@@ -26,9 +26,5 @@ namespace UI {
 
     void printSeparator();
 
-    int intInput(const std::string& userPrompt, size_t minValue, size_t maxValue);
-
-    bool boolInput(const std::string& userPrompt);
-
     bool parseArgs(int argc, char* arg[], Settings& settings);
 };

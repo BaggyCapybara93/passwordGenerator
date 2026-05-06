@@ -36,44 +36,6 @@ namespace UI{
         std::cout << "\n--------------------------------------------------\n";
     }
     
-    int intInput(const std::string& userPrompt, size_t minValue, size_t maxValue){
-        int value;
-        while(true){
-            printColored(userPrompt + " ", Color::Blue);
-            if(!(std::cin >> value)){
-                printColored("Invalid input. Please enter a number.", Color::Red);
-                std::cin.clear(); //Clear Input
-                std::cin.ignore(1000, '\n');
-                continue;
-            }
-    
-            if(value >= minValue && value <= maxValue){
-                return value;
-            }else{
-                printColored("Value must be between " + std::to_string(minValue) + 
-                              " and " + std::to_string(maxValue), Color::Red);
-                std::cin.ignore(1000, '\n'); // Clear input buffer
-            }
-        } 
-    }
-    
-    bool boolInput(const std::string& userPrompt){
-        printColored(userPrompt + " [y/n]: ", Color::Blue);
-        char response;
-        while (true) {
-            if (!(std::cin >> std::noskipws >> response)) {
-                break;
-            }
-            
-            if (response == 'y' || response == 'Y') return true;
-            if (response == 'n' || response == 'N') return false;
-            
-            printColored("Please enter 'y' or 'n'", Color::Red);
-            std::cin.ignore(1000, '\n'); // Clear input buffer
-        }
-        return false; // Default if invalid
-    }
-    
     bool parseArgs(int argc, char* arg[], Settings& settings) {
         // Reset configuration to defaults before parsing
         settings.desiredLength = 12;
