@@ -26,6 +26,7 @@ endif()
 
 set(SOURCES 
     src/random.cpp
+    src/ui.cpp
     src/main.cpp
 )
 
@@ -38,9 +39,7 @@ add_library(rng_lib STATIC ${SOURCES})
 target_include_directories(rng_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(${PROJECT_NAME} 
-    src/main.cpp
-    src/random.cpp  
-    src/ui.cpp
+    ${SOURCES}
 )
 
 # Link the RNG Library 
