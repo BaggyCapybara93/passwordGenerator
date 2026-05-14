@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <optional>
 
 struct Settings {
     size_t desiredLength = 12;
