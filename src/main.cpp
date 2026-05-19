@@ -7,7 +7,7 @@ int main(int argc, char* arg[]){
     Settings settings;
 
     if (!UI::parseArgs(argc, arg, settings)) {
-        return 1; 
+        return 0; // Exit if argument parsing failed or help was requested 
     }
 
     RNG::seed(settings.seed); 

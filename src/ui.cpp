@@ -18,13 +18,14 @@ namespace UI{
         }
     }
 
-    void printEscapeCode(int code, int color_value = 0) {
+    void printEscapeCode(const char*& code) {
         std::cout << "\033[" << code << "m";
     }
 
     void printColored(std::string text, Color color, bool newLine){
-        const char* code_str = UI::getColor(color);
-        std::cout << "\033[" << std::stoi(code_str) << "m" << text; 
+        const char* codeStr = UI::getColor(color);
+        printEscapeCode(codeStr);
+        std::cout << text; 
         if (newLine) std::cout << "\033[0m\n";
     }
     
@@ -36,19 +37,19 @@ namespace UI{
         std::cout << "\n--------------------------------------------------\n";
     }
     
-    bool parseArgs(int argc, char* arg[], Settings& settings) {
+    bool parseArgs(int argc, char* argv[], Settings& settings) {
         // Reset configuration to defaults before parsing
         settings.desiredLength = 12;
         settings.reqUppercase = true;
         settings.reqLowercase = true;
         settings.reqDigits = true;
         settings.reqSpecial = true;
-    
-        std::cout << "\n--- Parsing Command Line Arguments ---\n";
-    
+        settings.numPasswords = 1;
+        settings.seed = std::nullopt;
+
         // Start loop from i = 1 to skip the program name (arg[0])
         for (int i = 1; i < argc; ++i) {
-            std::string currentArg = arg[i];
+            std::string currentArg = argv[i];
     
             if (currentArg == "--help" || currentArg == "-h") {
                 std::cout << "Usage: ./program [--length N] [--no-uppercase]\n"
@@ -67,7 +68,7 @@ namespace UI{
                 if (i + 1 < argc) {
                     try {
                         // Safely convert the string argument to size_t
-                        settings.desiredLength = std::stoul(arg[i + 1]);
+                        settings.desiredLength = std::stoul(argv[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid length specified. Use a valid number.\n";
@@ -94,7 +95,7 @@ namespace UI{
             else if (currentArg == "--num-passwords" || currentArg == "-nP") {
                 if (i + 1 < argc) {
                     try {
-                        settings.numPasswords = std::stoi(arg[i + 1]);
+                        settings.numPasswords = std::stoi(argv[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid num-passwords specified. Use a valid number.\n";
@@ -108,7 +109,7 @@ namespace UI{
                 if (i + 1 < argc) {
                     try {
                         // Parse the seed as a 64-bit unsigned integer
-                        uint64_t seed_val = std::stoull(arg[i + 1]);
+                        uint64_t seed_val = std::stoull(argv[i + 1]);
                         settings.seed = seed_val;
                         i++;
                     } catch (const std::exception& e) {
@@ -122,7 +123,7 @@ namespace UI{
             }
             
             else {
-                std::cout << "Warning: Unknown argument encountered: " << currentArg << "\n";
+                std::cerr << "Warning: Unknown argument encountered: " << currentArg << "\n";
                 return false;
             }
         }

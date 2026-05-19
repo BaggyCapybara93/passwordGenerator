@@ -28,5 +28,5 @@ namespace UI {
 
     void printSeparator();
 
-    bool parseArgs(int argc, char* arg[], Settings& settings);
+    bool parseArgs(int argc, char* argv[], Settings& settings);
 };
