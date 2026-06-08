@@ -1,61 +1,44 @@
 cmake_minimum_required(VERSION 3.10)
-
 project(PasswordGenerator VERSION 1.0 LANGUAGES CXX)
 
-# Set C++ Standard 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Strict compile rules (same style as CPUBenchmark)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wsign-conversion -Wcast-qual")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast -Wshadow")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat=2 -Wformat-security")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
 
+# Build type defaults
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to 'Release' as none was specified.")
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-fsanitize=address,undefined)
-    add_link_options(-fsanitize=address,undefined)
-endif()
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "C++ flags for release build.")
-endif()
-
-set(SOURCES 
+# Source files (same pattern as CPUBenchmark)
+set(SOURCE_FILES
     src/random.cpp
     src/ui.cpp
+    src/parse_arguments.cpp
     src/main.cpp
 )
 
-set(HEADERS 
-    include/random.hpp
-    include/ui.hpp
-)
+add_executable(PasswordGenerator ${SOURCE_FILES})
 
-add_library(rng_lib STATIC ${SOURCES})
-target_include_directories(rng_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# --- EXACT SAME BOOST METHOD AS CPUBENCHMARK ---
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 OLD)
+endif()
 
-add_executable(${PROJECT_NAME} 
-    ${SOURCES}
-)
+find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
 
-# Link the RNG Library 
-target_link_libraries(${PROJECT_NAME} PRIVATE rng_lib)
+# Include dirs (same pattern)
+target_include_directories(PasswordGenerator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(PasswordGenerator PRIVATE ${Boost_INCLUDE_DIRS})
 
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-
-# Install Rules
-install(TARGETS ${PROJECT_NAME} 
-        RUNTIME DESTINATION bin
-)
-
-install(DIRECTORY include/
-    DESTINATION include
-)
-
-message(STATUS "CMake Configuration Complete.")
-message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+# Link Boost (same pattern)
+target_link_libraries(PasswordGenerator PRIVATE Boost::program_options)

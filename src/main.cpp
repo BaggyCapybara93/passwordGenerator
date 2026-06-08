@@ -1,12 +1,16 @@
 #include "random.hpp"
 #include "ui.hpp"
+#include "parse_arguments.hpp"
 #include <iostream>
 
 
 int main(int argc, char* arg[]){
+    // Set program name for help output
+    std::string program_name = arg[0];
+    
     Settings settings;
 
-    if (!UI::parse_args(argc, arg, settings)) {
+    if (!parse_arguments::parse_args(argc, arg, settings)) {
         return 0; // Exit if argument parsing failed or help was requested 
     }
 
