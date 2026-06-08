@@ -10,8 +10,11 @@ static const std::string specialString = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
 
 std::mt19937_64 RNG::engine_;
 std::random_device RNG::device_;
+std::mutex RNG::engine_mutex_;
 
 void RNG::seed(std::optional<uint64_t> seedValue){
+    std::lock_guard<std::mutex> lock(engine_mutex_);
+
     if (seedValue.has_value()) {
         uint64_t specificSeed = seedValue.value();
         std::cout << "Seeding RNG with specific value: " << specificSeed << "..." << std::endl;
@@ -61,14 +64,13 @@ std::string RNG::generate(size_t length, bool requiresUppercase, bool requiresLo
     ensureChar(sp, requiresSpecial);
 
     size_t current_size = result.size();
-    size_t remaining = length - current_size;
-    
-    if(remaining < 0){
+    if (length < current_size) {
         std::string msg = "Requested password length (" + std::to_string(length) + 
                           ") is too short for requirements (" + 
                           std::to_string(current_size) + " minimum).";
         throw std::invalid_argument(msg);
     }
+    size_t remaining = length - current_size;
 
     std::string allPool = "";
     if(requiresUppercase) allPool += up;
@@ -85,8 +87,10 @@ std::string RNG::generate(size_t length, bool requiresUppercase, bool requiresLo
         --remaining;
     }
 
-   
-    std::shuffle(result.begin(), result.end(), engine_);
+    {
+        std::lock_guard<std::mutex> lock(engine_mutex_);
+        std::shuffle(result.begin(), result.end(), engine_);
+    }
 
     return std::string(result.begin(), result.end());
 }
