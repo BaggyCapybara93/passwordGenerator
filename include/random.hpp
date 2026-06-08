@@ -16,12 +16,12 @@ class RNG{
 
         static std::string generate(
             size_t length,
-            bool requiresUppercase = true,
-            bool requiresLowercase = true,
-            bool requiresDigits = true,
-            bool requiresSpecial = true
+            bool requires_uppercase = true,
+            bool requires_lowercase = true,
+            bool requires_digits = true,
+            bool requires_special = true
         );
 
-        static char selectChar(const std::string& charset);
+        static char select_char(const std::string& charset);
 
 };

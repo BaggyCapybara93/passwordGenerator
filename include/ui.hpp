@@ -5,13 +5,13 @@
 #include <optional>
 
 struct Settings {
-    size_t desiredLength = 12;
+    size_t desired_length = 12;
     std::optional<uint64_t> seed = std::nullopt;
-    int numPasswords = 1;
-    bool reqUppercase = true;
-    bool reqLowercase = true;
-    bool reqDigits = true;
-    bool reqSpecial = true;
+    int num_passwords = 1;
+    bool req_uppercase = true;
+    bool req_lowercase = true;
+    bool req_digits = true;
+    bool req_special = true;
 };
 
 namespace UI {
@@ -20,13 +20,13 @@ namespace UI {
         Default, Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
     };
 
-    const char* getColor(Color c);
+    const char* get_color(Color c);
 
-    void printColored(std::string text, Color color, bool newLine = true);
+    void print_colored(std::string text, Color color, bool new_line = true);
 
-    void printReset();
+    void print_reset();
 
-    void printSeparator();
+    void print_separator();
 
-    bool parseArgs(int argc, char* argv[], Settings& settings);
+    bool parse_args(int argc, char* argv[], Settings& settings);
 };

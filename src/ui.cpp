@@ -4,7 +4,7 @@
 
 namespace UI{
 
-    const char* getColor(UI::Color c) {
+    const char* get_color(UI::Color c) {
         switch (c) {
             case Color::Black:   return "30"; break;
             case Color::Red:     return "31"; break; // ⚠️  Errors/Warnings
@@ -18,40 +18,40 @@ namespace UI{
         }
     }
 
-    void printEscapeCode(const char*& code) {
+    void print_escape_code(const char*& code) {
         std::cout << "\033[" << code << "m";
     }
 
-    void printColored(std::string text, Color color, bool newLine){
-        const char* codeStr = UI::getColor(color);
-        printEscapeCode(codeStr);
+    void print_colored(std::string text, Color color, bool new_line){
+        const char* code_str = UI::get_color(color);
+        print_escape_code(code_str);
         std::cout << text; 
-        if (newLine) std::cout << "\033[0m\n";
+        if (new_line) std::cout << "\033[0m\n";
     }
     
-    void printReset(){
+    void print_reset(){
         std::cout << "\033[0m";
     }
     
-    void printSeparator(){
+    void print_separator(){
         std::cout << "\n--------------------------------------------------\n";
     }
     
-    bool parseArgs(int argc, char* argv[], Settings& settings) {
+    bool parse_args(int argc, char* argv[], Settings& settings) {
         // Reset configuration to defaults before parsing
-        settings.desiredLength = 12;
-        settings.reqUppercase = true;
-        settings.reqLowercase = true;
-        settings.reqDigits = true;
-        settings.reqSpecial = true;
-        settings.numPasswords = 1;
+        settings.desired_length = 12;
+        settings.req_uppercase = true;
+        settings.req_lowercase = true;
+        settings.req_digits = true;
+        settings.req_special = true;
+        settings.num_passwords = 1;
         settings.seed = std::nullopt;
 
         // Start loop from i = 1 to skip the program name (arg[0])
         for (int i = 1; i < argc; ++i) {
-            std::string currentArg = argv[i];
+            std::string current_arg = argv[i];
     
-            if (currentArg == "--help" || currentArg == "-h") {
+            if (current_arg == "--help" || current_arg == "-h") {
                 std::cout << "Usage: ./program [--length N] [--no-uppercase]\n"
                           << "Options:\n"
                           << "  --length N   Set desired password length (e.g., --length 32)\n"
@@ -63,12 +63,12 @@ namespace UI{
                 return false;
             }
     
-            if (currentArg == "--length") {
+            if (current_arg == "--length") {
                 // Expect the value to be in the next argument
                 if (i + 1 < argc) {
                     try {
                         // Safely convert the string argument to size_t
-                        settings.desiredLength = std::stoul(argv[i + 1]);
+                        settings.desired_length = std::stoul(argv[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid length specified. Use a valid number.\n";
@@ -80,22 +80,22 @@ namespace UI{
                 }
             }
             
-            else if (currentArg == "--no-uppercase" || currentArg == "-u") {
-                settings.reqUppercase = false;
+            else if (current_arg == "--no-uppercase" || current_arg == "-u") {
+                settings.req_uppercase = false;
             }
-            else if (currentArg == "--no-lowercase" || currentArg == "-l") {
-                settings.reqLowercase = false;
+            else if (current_arg == "--no-lowercase" || current_arg == "-l") {
+                settings.req_lowercase = false;
             }
-            else if (currentArg == "--no-digits" || currentArg == "-d") {
-                settings.reqDigits = false;
+            else if (current_arg == "--no-digits" || current_arg == "-d") {
+                settings.req_digits = false;
             }
-            else if (currentArg == "--no-special" || currentArg == "-s") {
-                settings.reqSpecial = false;
+            else if (current_arg == "--no-special" || current_arg == "-s") {
+                settings.req_special = false;
             }
-            else if (currentArg == "--num-passwords" || currentArg == "-nP") {
+            else if (current_arg == "--num-passwords" || current_arg == "-nP") {
                 if (i + 1 < argc) {
                     try {
-                        settings.numPasswords = std::stoi(argv[i + 1]);
+                        settings.num_passwords = std::stoi(argv[i + 1]);
                         i++;
                     } catch (const std::exception& e) {
                         std::cerr << "Error: Invalid num-passwords specified. Use a valid number.\n";
@@ -105,7 +105,7 @@ namespace UI{
                     std::cerr << "Error: --num-passwords requires a following value.\n";
                     return false;
                 }
-            }else if (currentArg == "--seed") {
+            } else if (current_arg == "--seed") {
                 if (i + 1 < argc) {
                     try {
                         // Parse the seed as a 64-bit unsigned integer
@@ -123,7 +123,7 @@ namespace UI{
             }
             
             else {
-                std::cerr << "Warning: Unknown argument encountered: " << currentArg << "\n";
+                std::cerr << "Warning: Unknown argument encountered: " << current_arg << "\n";
                 return false;
             }
         }

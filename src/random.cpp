@@ -3,22 +3,22 @@
 #include <algorithm>
 #include <cctype>
 
-static const std::string uppercaseString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-static const std::string lowercaseString = "abcdefghijklmnopqrstuvwxyz";
-static const std::string digitsString = "0123456789";
-static const std::string specialString = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+static const std::string uppercase_string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const std::string lowercase_string = "abcdefghijklmnopqrstuvwxyz";
+static const std::string digits_string = "0123456789";
+static const std::string special_string = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
 
 std::mt19937_64 RNG::engine_;
 std::random_device RNG::device_;
 std::mutex RNG::engine_mutex_;
 
-void RNG::seed(std::optional<uint64_t> seedValue){
+void RNG::seed(std::optional<uint64_t> seed_value){
     std::lock_guard<std::mutex> lock(engine_mutex_);
 
-    if (seedValue.has_value()) {
-        uint64_t specificSeed = seedValue.value();
-        std::cout << "Seeding RNG with specific value: " << specificSeed << "..." << std::endl;
-        engine_.seed(specificSeed);
+    if (seed_value.has_value()) {
+        uint64_t specific_seed = seed_value.value();
+        std::cout << "Seeding RNG with specific value: " << specific_seed << "..." << std::endl;
+        engine_.seed(specific_seed);
     } else {
         std::cout << "Generating system entropy for RNG..." << std::endl;
         engine_.seed(device_());
@@ -26,7 +26,7 @@ void RNG::seed(std::optional<uint64_t> seedValue){
     std::cout << "Seed completed." << std::endl;
 }
 
-char RNG::selectChar(const std::string& charset){
+char RNG::select_char(const std::string& charset){
     if (charset.empty()) {
         throw std::invalid_argument("Character set is empty - cannot select character!");
     }
@@ -43,25 +43,25 @@ char RNG::selectChar(const std::string& charset){
     return charset[index];
 }
 
-std::string RNG::generate(size_t length, bool requiresUppercase, bool requiresLowercase, bool requiresDigits, bool requiresSpecial){
+std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_lowercase, bool requires_digits, bool requires_special){
     std::vector<char> result;
     
     // Define pools
-    const std::string& up = uppercaseString;
-    const std::string& low = lowercaseString;
-    const std::string& dig = digitsString;
-    const std::string& sp = specialString;
+    const std::string& up = uppercase_string;
+    const std::string& low = lowercase_string;
+    const std::string& dig = digits_string;
+    const std::string& sp = special_string;
 
-    auto ensureChar = [&](const std::string& s, bool req) {
+    auto ensure_char = [&](const std::string& s, bool req) {
         if (req && !s.empty()) {
-            result.push_back(selectChar(s));
+            result.push_back(select_char(s));
         }
     };
 
-    ensureChar(up, requiresUppercase);
-    ensureChar(low, requiresLowercase);
-    ensureChar(dig, requiresDigits);
-    ensureChar(sp, requiresSpecial);
+    ensure_char(up, requires_uppercase);
+    ensure_char(low, requires_lowercase);
+    ensure_char(dig, requires_digits);
+    ensure_char(sp, requires_special);
 
     size_t current_size = result.size();
     if (length < current_size) {
@@ -72,18 +72,18 @@ std::string RNG::generate(size_t length, bool requiresUppercase, bool requiresLo
     }
     size_t remaining = length - current_size;
 
-    std::string allPool = "";
-    if(requiresUppercase) allPool += up;
-    if(requiresLowercase) allPool += low;
-    if(requiresDigits) allPool += dig;
-    if(requiresSpecial) allPool += sp;
+    std::string all_pool = "";
+    if(requires_uppercase) all_pool += up;
+    if(requires_lowercase) all_pool += low;
+    if(requires_digits) all_pool += dig;
+    if(requires_special) all_pool += sp;
 
-    if(allPool.empty()) {
+    if(all_pool.empty()) {
         throw std::invalid_argument("No character set defined to generate remaining characters!");
     }
 
     while(static_cast<size_t>(result.size()) < length && remaining > 0){
-        result.push_back(selectChar(allPool));
+        result.push_back(select_char(all_pool));
         --remaining;
     }
 
