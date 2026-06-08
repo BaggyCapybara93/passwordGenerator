@@ -19,6 +19,6 @@ class RNG{
             bool requiresSpecial = true
         );
 
-        static char selectChar(const std::vector<char>& charset);
+        static char selectChar(const std::string& charset);
 
 };

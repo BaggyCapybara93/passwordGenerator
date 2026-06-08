@@ -23,7 +23,7 @@ void RNG::seed(std::optional<uint64_t> seedValue){
     std::cout << "Seed completed." << std::endl;
 }
 
-char RNG::selectChar(const std::vector<char>& charset){
+char RNG::selectChar(const std::string& charset){
     if (charset.empty()) {
         throw std::invalid_argument("Character set is empty - cannot select character!");
     }
@@ -51,7 +51,7 @@ std::string RNG::generate(size_t length, bool requiresUppercase, bool requiresLo
 
     auto ensureChar = [&](const std::string& s, bool req) {
         if (req && !s.empty()) {
-            result.push_back(selectChar(std::vector<char>(s.begin(), s.end())));
+            result.push_back(selectChar(s));
         }
     };
 
@@ -81,7 +81,7 @@ std::string RNG::generate(size_t length, bool requiresUppercase, bool requiresLo
     }
 
     while(static_cast<size_t>(result.size()) < length && remaining > 0){
-        result.push_back(selectChar(std::vector<char>(allPool.begin(), allPool.end())));
+        result.push_back(selectChar(allPool));
         --remaining;
     }
 
