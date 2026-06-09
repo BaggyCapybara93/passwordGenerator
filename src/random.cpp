@@ -17,13 +17,10 @@ void RNG::seed(std::optional<uint64_t> seed_value){
 
     if (seed_value.has_value()) {
         uint64_t specific_seed = seed_value.value();
-        std::cout << "Seeding RNG with specific value: " << specific_seed << "..." << std::endl;
         engine_.seed(specific_seed);
     } else {
-        std::cout << "Generating system entropy for RNG..." << std::endl;
         engine_.seed(device_());
     }
-    std::cout << "Seed completed." << std::endl;
 }
 
 char RNG::select_char(const std::string& charset){
