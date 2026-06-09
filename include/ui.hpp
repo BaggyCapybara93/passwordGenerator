@@ -17,4 +17,6 @@ namespace UI {
     void print_reset(bool no_color = false);
 
     void print_separator();
+
+    void print_charset_info(const std::string& custom_chars, const std::string& exclude_chars, bool no_color = false);
 };

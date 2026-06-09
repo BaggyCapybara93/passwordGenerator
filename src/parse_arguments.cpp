@@ -27,6 +27,10 @@ namespace parse_arguments {
                  "Number of passwords to generate (default: 1)")
                 ("seed", po::value<uint64_t>(),
                  "Use deterministic seed for random number generation")
+                ("custom-chars", po::value<std::string>(&settings.custom_chars),
+                 "Custom character pool (e.g., \"abcXYZ123!@#\")")
+                ("exclude-chars", po::value<std::string>(&settings.exclude_chars),
+                 "Characters to exclude from default pools (e.g., \"!@#$\")")
                 ;
 
             // Parse command line arguments
@@ -48,6 +52,22 @@ namespace parse_arguments {
             // Handle no-color option
             if (vm.count("no-color")) {
                 settings.no_color = true;
+            }
+
+            // Validate custom characters
+            if (!settings.custom_chars.empty()) {
+                if (settings.custom_chars.length() < 4) {
+                    std::cerr << "Error: Custom character pool must contain at least 4 characters.\n";
+                    return false;
+                }
+            }
+
+            // Validate exclude characters
+            if (!settings.exclude_chars.empty()) {
+                if (settings.exclude_chars.length() < 1) {
+                    std::cerr << "Error: Exclude characters must contain at least 1 character.\n";
+                    return false;
+                }
             }
 
             // Validate settings
@@ -87,6 +107,8 @@ namespace parse_arguments {
         std::cout << "  --help, -h              Show this help message and exit\n\n";
         std::cout << "Example:\n";
         std::cout << "  " << program_name << " --length 32 --no-special --num-passwords 5\n";
+        std::cout << "  " << program_name << " --length 16 --custom-chars \"abcXYZ123!@#\"\n";
+        std::cout << "  " << program_name << " --length 16 --exclude-chars \"!@#$\"\n";
     }
 
 } // namespace parse_arguments

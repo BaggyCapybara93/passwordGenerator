@@ -39,5 +39,32 @@ namespace UI{
     void print_separator(){
         std::cout << "\n--------------------------------------------------\n";
     }
+    
+    void print_charset_info(const std::string& custom_chars, const std::string& exclude_chars, bool no_color){
+        if (custom_chars.empty() && exclude_chars.empty()) {
+            return;
+        }
+        
+        if (!no_color) {
+            std::cout << "\033[34m"; // Blue
+        }
+        std::cout << "\nCharacter Set Information:\n";
+        
+        if (!custom_chars.empty()) {
+            if (!no_color) std::cout << "\033[32m"; // Green
+            std::cout << "  Custom Character Pool: " << custom_chars << "\n";
+            std::cout << "  Pool Size: " << custom_chars.size() << " characters\n";
+            if (!no_color) std::cout << "\033[0m";
+        }
+        
+        if (!exclude_chars.empty()) {
+            if (!no_color) std::cout << "\033[33m"; // Yellow
+            std::cout << "  Excluded Characters: " << exclude_chars << "\n";
+            std::cout << "  Excluded Count: " << exclude_chars.size() << " characters\n";
+            if (!no_color) std::cout << "\033[0m";
+        }
+        
+        if (!no_color) std::cout << "\033[0m";
+    }
 }
 

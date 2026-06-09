@@ -24,7 +24,9 @@ int main(int argc, char* arg[]){
                 settings.req_uppercase, 
                 settings.req_lowercase, 
                 settings.req_digits, 
-                settings.req_special
+                settings.req_special,
+                settings.custom_chars,
+                settings.exclude_chars
             );
         } catch (const std::invalid_argument& e) {
             UI::print_colored("Error generating password: " + std::string(e.what()), UI::Color::Red);
@@ -55,6 +57,9 @@ int main(int argc, char* arg[]){
         
         UI::print_colored("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings.no_color);
         UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow, true, settings.no_color);
+
+        // Display charset information if custom chars or exclude chars were used
+        UI::print_charset_info(settings.custom_chars, settings.exclude_chars, settings.no_color);
 
         UI::print_colored("Password generation complete.", UI::Color::Green, true, settings.no_color);
 

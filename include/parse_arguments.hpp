@@ -17,6 +17,8 @@ struct Settings {
     bool req_digits = true;
     bool req_special = true;
     bool no_color = false;
+    std::string custom_chars = "";           // Custom character pool
+    std::string exclude_chars = "";          // Characters to exclude from default pools
 };
 
 namespace parse_arguments {

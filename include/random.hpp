@@ -19,10 +19,33 @@ class RNG{
             bool requires_uppercase = true,
             bool requires_lowercase = true,
             bool requires_digits = true,
-            bool requires_special = true
+            bool requires_special = true,
+            const std::string& custom_chars = "",
+            const std::string& exclude_chars = ""
         );
 
         static char select_char(const std::string& charset);
+
+        /**
+         * @brief Build the default character pool (uppercase + lowercase + digits + special)
+         * @return The default 92-character pool
+         */
+        static std::string build_default_pool();
+
+        /**
+         * @brief Build a custom character pool from provided characters
+         * @param chars The custom character string
+         * @return The custom character pool
+         */
+        static std::string build_custom_pool(const std::string& chars);
+
+        /**
+         * @brief Exclude specified characters from a pool
+         * @param pool The original character pool
+         * @param exclude Characters to remove
+         * @return The pool with excluded characters removed
+         */
+        static std::string exclude_chars_from_pool(const std::string& pool, const std::string& exclude);
 
         /**
          * @brief Calculate the entropy of a password in bits
