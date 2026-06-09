@@ -22,6 +22,7 @@ namespace parse_arguments {
                 ("no-lowercase", "Disable lowercase requirement")
                 ("no-digits", "Disable digit requirement")
                 ("no-special", "Disable special character requirement")
+                ("no-color", "Disable colored output")
                 ("num-passwords", po::value<int>(&settings.num_passwords),
                  "Number of passwords to generate (default: 1)")
                 ("seed", po::value<uint64_t>(),
@@ -42,6 +43,11 @@ namespace parse_arguments {
             // Handle seed option
             if (vm.count("seed")) {
                 settings.seed = vm["seed"].as<uint64_t>();
+            }
+
+            // Handle no-color option
+            if (vm.count("no-color")) {
+                settings.no_color = true;
             }
 
             // Validate settings
@@ -74,6 +80,7 @@ namespace parse_arguments {
         std::cout << "  --no-uppercase          Disable uppercase requirement\n";
         std::cout << "  --no-lowercase          Disable lowercase requirement\n";
         std::cout << "  --no-digits             Disable digit requirement\n";
+        std::cout << "  --no-color              Disable colored output\n";
         std::cout << "  --no-special            Disable special character requirement\n";
         std::cout << "  --num-passwords N       Number of passwords to generate (default: 1)\n";
         std::cout << "  --seed N                Use deterministic seed for random generation\n";

@@ -16,6 +16,7 @@ struct Settings {
     bool req_lowercase = true;
     bool req_digits = true;
     bool req_special = true;
+    bool no_color = false;
 };
 
 namespace parse_arguments {

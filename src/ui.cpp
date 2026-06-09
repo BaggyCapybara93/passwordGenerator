@@ -4,7 +4,8 @@
 
 namespace UI{
 
-    const char* get_color(UI::Color c) {
+    const char* get_color(UI::Color c, bool no_color) {
+        if (no_color) return "";
         switch (c) {
             case Color::Black:   return "30"; break;
             case Color::Red:     return "31"; break; // ⚠️  Errors/Warnings
@@ -22,15 +23,17 @@ namespace UI{
         std::cout << "\033[" << code << "m";
     }
 
-    void print_colored(std::string text, Color color, bool new_line){
-        const char* code_str = UI::get_color(color);
-        print_escape_code(code_str);
+    void print_colored(std::string text, Color color, bool new_line, bool no_color){
+        if (!no_color) {
+            const char* code_str = UI::get_color(color);
+            print_escape_code(code_str);
+        }
         std::cout << text; 
         if (new_line) std::cout << "\033[0m\n";
     }
     
-    void print_reset(){
-        std::cout << "\033[0m";
+    void print_reset(bool no_color){
+        if (!no_color) std::cout << "\033[0m";
     }
     
     void print_separator(){

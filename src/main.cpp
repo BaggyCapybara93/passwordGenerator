@@ -34,11 +34,11 @@ int main(int argc, char* arg[]){
             return 1;
         }
 
-        UI::print_colored("==================================================", UI::Color::Blue);
-        UI::print_colored("GENERATED PASSWORD:", UI::Color::Cyan);
-        UI::print_colored("==================================================", UI::Color::Blue);
+        UI::print_colored("==================================================", UI::Color::Blue, true, settings.no_color);
+        UI::print_colored("GENERATED PASSWORD:", UI::Color::Cyan, true, settings.no_color);
+        UI::print_colored("==================================================", UI::Color::Blue, true, settings.no_color);
         
-        UI::print_colored(password, UI::Color::Green, false); // No newline after the password
+        UI::print_colored(password, UI::Color::Green, true, settings.no_color); // No newline after the password
         
         // Calculate and display entropy
         double entropy = RNG::calculate_entropy(password);
@@ -53,13 +53,13 @@ int main(int argc, char* arg[]){
             security_rating = "Strong";
         }
         
-        UI::print_colored("\nEntropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow);
-        UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow);
+        UI::print_colored("\nEntropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings.no_color);
+        UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow, true, settings.no_color);
 
-        UI::print_colored("\nPassword generation complete.", UI::Color::Green);
+        UI::print_colored("\nPassword generation complete.", UI::Color::Green, true, settings.no_color);
 
         // Reset terminal colors
-        UI::print_reset();
+        UI::print_reset(settings.no_color);
     }
 
     return 0;
