@@ -24,4 +24,11 @@ class RNG{
 
         static char select_char(const std::string& charset);
 
+        /**
+         * @brief Calculate the entropy of a password in bits
+         * @param password The password to calculate entropy for
+         * @return Entropy in bits (higher = more secure)
+         */
+        static double calculate_entropy(const std::string& password);
+
 };

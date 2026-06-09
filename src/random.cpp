@@ -91,3 +91,43 @@ std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_
 
     return std::string(result.begin(), result.end());
 }
+
+/**
+ * @brief Calculate the entropy of a password in bits
+ * Entropy is calculated as the sum of log2(pool_size) for each character
+ * Higher entropy = more unpredictable = more secure
+ */
+double RNG::calculate_entropy(const std::string& password) {
+    if (password.empty()) {
+        return 0.0;
+    }
+    
+    // Pool sizes for each character type
+    const size_t uppercase_size = uppercase_string.size();
+    const size_t lowercase_size = lowercase_string.size();
+    const size_t digits_size = digits_string.size();
+    const size_t special_size = special_string.size();
+    
+    // Calculate entropy: sum of log2(pool_size) for each character
+    double entropy = 0.0;
+    for (size_t i = 0; i < password.size(); ++i) {
+        char c = password[i];
+        double pool_size = 0.0;
+        
+        if (c >= 'A' && c <= 'Z') {
+            pool_size = static_cast<double>(uppercase_size);
+        } else if (c >= 'a' && c <= 'z') {
+            pool_size = static_cast<double>(lowercase_size);
+        } else if (c >= '0' && c <= '9') {
+            pool_size = static_cast<double>(digits_size);
+        } else if (c >= '!' && c <= '~') {  // Special chars are in ASCII range 33-126
+            pool_size = static_cast<double>(special_size);
+        }
+        
+        if (pool_size > 0) {
+            entropy += std::log2(pool_size);
+        }
+    }
+    
+    return entropy;
+}

@@ -40,7 +40,22 @@ int main(int argc, char* arg[]){
         
         UI::print_colored(password, UI::Color::Green, false); // No newline after the password
         
+        // Calculate and display entropy
+        double entropy = RNG::calculate_entropy(password);
         
+        // Determine security rating based on entropy
+        std::string security_rating;
+        if (entropy < 40.0) {
+            security_rating = "Weak";
+        } else if (entropy < 60.0) {
+            security_rating = "Moderate";
+        } else {
+            security_rating = "Strong";
+        }
+        
+        UI::print_colored("\nEntropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow);
+        UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow);
+
         UI::print_colored("\nPassword generation complete.", UI::Color::Green);
 
         // Reset terminal colors
