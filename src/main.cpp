@@ -53,10 +53,10 @@ int main(int argc, char* arg[]){
             security_rating = "Strong";
         }
         
-        UI::print_colored("\nEntropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings.no_color);
+        UI::print_colored("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings.no_color);
         UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow, true, settings.no_color);
 
-        UI::print_colored("\nPassword generation complete.", UI::Color::Green, true, settings.no_color);
+        UI::print_colored("Password generation complete.", UI::Color::Green, true, settings.no_color);
 
         // Reset terminal colors
         UI::print_reset(settings.no_color);
