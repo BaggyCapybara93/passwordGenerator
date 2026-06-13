@@ -4,7 +4,6 @@ project(PasswordGenerator VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Strict compile rules (same style as CPUBenchmark)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wsign-conversion -Wcast-qual")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast -Wshadow")
@@ -19,7 +18,6 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")
 
-# Source files (same pattern as CPUBenchmark)
 set(SOURCE_FILES
     src/random.cpp
     src/ui.cpp
@@ -29,16 +27,13 @@ set(SOURCE_FILES
 
 add_executable(PasswordGenerator ${SOURCE_FILES})
 
-# --- EXACT SAME BOOST METHOD AS CPUBENCHMARK ---
 if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
 endif()
 
 find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
 
-# Include dirs (same pattern)
 target_include_directories(PasswordGenerator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(PasswordGenerator PRIVATE ${Boost_INCLUDE_DIRS})
 
-# Link Boost (same pattern)
 target_link_libraries(PasswordGenerator PRIVATE Boost::program_options)
