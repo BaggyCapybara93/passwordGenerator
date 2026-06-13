@@ -41,27 +41,60 @@ int main(int argc, char* arg[]){
             return 1;
         }
 
-        UI::print_colored("==================================================", UI::Color::Blue, true, settings.no_color);
-        UI::print_colored("GENERATED PASSWORD:", UI::Color::Cyan, true, settings.no_color);
-        UI::print_colored("==================================================", UI::Color::Blue, true, settings.no_color);
-        
-        UI::print_colored(password, UI::Color::Green, true, settings.no_color); // No newline after the password
-        
-        // Calculate and display entropy
-        double entropy = RNG::calculate_entropy(password);
-        
-        // Determine security rating based on entropy
+        // Check minimum entropy requirement first
+        bool entropy_check_passed = true;
+        double entropy = 0.0;
         std::string security_rating;
-        if (entropy < 40.0) {
-            security_rating = "Weak";
-        } else if (entropy < 60.0) {
-            security_rating = "Moderate";
+        
+        if (settings.min_entropy > 0) {
+            entropy = RNG::calculate_entropy(password);
+            
+            // Determine security rating based on entropy
+            if (entropy < 40.0) {
+                security_rating = "Weak";
+            } else if (entropy < 60.0) {
+                security_rating = "Moderate";
+            } else {
+                security_rating = "Strong";
+            }
+            
+            // Check if password meets minimum entropy requirement
+            if (entropy < settings.min_entropy) {
+                entropy_check_passed = false;
+            }
         } else {
-            security_rating = "Strong";
+            // No minimum entropy set, calculate and display entropy
+            entropy = RNG::calculate_entropy(password);
+            
+            // Determine security rating based on entropy
+            if (entropy < 40.0) {
+                security_rating = "Weak";
+            } else if (entropy < 60.0) {
+                security_rating = "Moderate";
+            } else {
+                security_rating = "Strong";
+            }
         }
         
-        UI::print_colored("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings.no_color);
-        UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow, true, settings.no_color);
+        // Only display password if it passes entropy check (or if no check is enabled)
+        if (entropy_check_passed) {
+            UI::print_colored("==================================================", UI::Color::Blue, true, settings.no_color);
+            UI::print_colored("GENERATED PASSWORD:", UI::Color::Cyan, true, settings.no_color);
+            UI::print_colored("==================================================", UI::Color::Blue, true, settings.no_color);
+            
+            UI::print_colored(password, UI::Color::Green, true, settings.no_color); // No newline after the password
+            
+            // Display entropy and security rating
+            UI::print_colored("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings.no_color);
+            UI::print_colored("Security Rating: " + security_rating, UI::Color::Yellow, true, settings.no_color);
+        } else {
+            // Password failed entropy check, show warning without displaying password
+            UI::print_colored("WARNING: Generated password does not meet minimum entropy requirement!", UI::Color::Red, true, settings.no_color);
+            UI::print_colored("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits (minimum: " + 
+                            std::to_string(static_cast<long long>(settings.min_entropy)) + " bits)", UI::Color::Red, true, settings.no_color);
+            UI::print_colored("Regenerating password...", UI::Color::Cyan, true, settings.no_color);
+            continue; // Regenerate this password
+        }
 
         // Display charset information if custom chars or exclude chars were used
         UI::print_charset_info(settings.custom_chars, settings.exclude_chars, settings.no_color, settings.exclude_ambiguous);

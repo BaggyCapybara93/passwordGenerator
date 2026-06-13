@@ -33,6 +33,8 @@ namespace parse_arguments {
                  "Characters to exclude from default pools (e.g., \"!@#$\")")
                 ("blacklist", po::value<std::string>(&settings.blacklist),
                  "Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")")
+                ("min-entropy", po::value<double>(&settings.min_entropy),
+                 "Set minimum entropy threshold in bits (default: 0 means no minimum)")
                 ("no-ambiguous", "Exclude ambiguous characters (0/O, 1/l/I)")
                 ;
 
@@ -81,9 +83,20 @@ namespace parse_arguments {
                 }
             }
 
+            // Validate min-entropy format
+            if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
+                std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
+                return false;
+            }
+
             // Handle no-ambiguous option
             if (vm.count("no-ambiguous")) {
                 settings.exclude_ambiguous = true;
+            }
+
+            // Handle min-entropy option
+            if (vm.count("min-entropy")) {
+                settings.min_entropy = vm["min-entropy"].as<double>();
             }
 
             // Validate settings
@@ -94,6 +107,11 @@ namespace parse_arguments {
 
             if (settings.num_passwords < 1) {
                 std::cerr << "Error: Number of passwords must be at least 1.\n";
+                return false;
+            }
+
+            if (settings.min_entropy < 0) {
+                std::cerr << "Error: Minimum entropy must be non-negative.\n";
                 return false;
             }
 
@@ -121,6 +139,7 @@ namespace parse_arguments {
         std::cout << "  --num-passwords N       Number of passwords to generate (default: 1)\n";
         std::cout << "  --seed N                Use deterministic seed for random generation\n";
         std::cout << "  --blacklist S           Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")\n";
+        std::cout << "  --min-entropy N         Set minimum entropy threshold in bits (default: 0 means no minimum)\n";
         std::cout << "  --no-ambiguous          Exclude ambiguous characters (0/O, 1/l/I)\n";
         std::cout << "  --help, -h              Show this help message and exit\n\n";
         std::cout << "Example:\n";
