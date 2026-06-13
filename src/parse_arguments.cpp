@@ -36,6 +36,7 @@ namespace parse_arguments {
                 ("min-entropy", po::value<double>(&settings.min_entropy),
                  "Set minimum entropy threshold in bits (default: 0 means no minimum)")
                 ("no-ambiguous", "Exclude ambiguous characters (0/O, 1/l/I)")
+                ("honey-password", "Generate a weak password designed to be compromised")
                 ;
 
             // Parse command line arguments
@@ -99,6 +100,11 @@ namespace parse_arguments {
                 settings.min_entropy = vm["min-entropy"].as<double>();
             }
 
+            // Handle honey-password option
+            if (vm.count("honey-password")) {
+                settings.is_honeypassword = true;
+            }
+
             // Validate settings
             if (settings.desired_length < 1) {
                 std::cerr << "Error: Password length must be at least 1.\n";
@@ -141,6 +147,7 @@ namespace parse_arguments {
         std::cout << "  --blacklist S           Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")\n";
         std::cout << "  --min-entropy N         Set minimum entropy threshold in bits (default: 0 means no minimum)\n";
         std::cout << "  --no-ambiguous          Exclude ambiguous characters (0/O, 1/l/I)\n";
+        std::cout << "  --honey-password        Generate a weak password designed to be compromised\n";
         std::cout << "  --help, -h              Show this help message and exit\n\n";
         std::cout << "Example:\n";
         std::cout << "  " << program_name << " --length 32 --no-special --num-passwords 5\n";

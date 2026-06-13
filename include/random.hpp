@@ -11,6 +11,8 @@ class RNG{
         static std::mt19937_64 engine_;
         static std::random_device device_;
         static std::mutex engine_mutex_;
+
+        static std::string random_word();
     
     public:
         static std::set<std::string> parse_blacklist(const std::string& blacklist_str);
@@ -65,5 +67,12 @@ class RNG{
          * @return Entropy in bits (higher = more secure)
          */
         static double calculate_entropy(const std::string& password);
+
+        /**
+         * @brief Generate a honey password (intentionally weak, designed to be compromised)
+         * @param length The desired password length
+         * @return A weak password that is commonly used and easily guessable
+         */
+        static std::string generate_honey_password(size_t length);
 
  };

@@ -23,6 +23,20 @@ std::random_device RNG::device_;
 std::mutex RNG::engine_mutex_;
 
 /**
+ * @brief Randomly generate a work from a list
+ */
+std::string RNG::random_word() {
+    //Replace this with a txt based list of possible works
+    static const std::vector<std::string> words = {
+        "cat", "sun", "blue", "tree", "star", "moon",
+        "happy", "cool", "water", "light", "shadow",
+        "password", "car", "secert", "word", "cheese"
+    };
+    std::uniform_int_distribution<size_t> dist(0, words.size() - 1);
+    return words[dist(engine_)];
+}
+
+/**
  * @brief Parse blacklist string in format {password1,password2,password3}
  * @param blacklist_str The blacklist string from command line
  * @return A set of blacklisted passwords
@@ -294,4 +308,75 @@ double RNG::calculate_entropy(const std::string& password) {
     }
     
     return entropy;
+}
+
+//TEMP: Replace or move later
+/**
+ * @brief Generate a honey password (intentionally weak, designed to be compromised)
+ * Honey passwords use commonly compromised patterns and are easily guessable
+ * This is useful for security testing and honeypot systems
+ * 
+ * @param length The desired password length
+ * @return A weak password that is commonly used and easily guessable
+ */
+std::string RNG::generate_honey_password(size_t length) {
+    std::string word = random_word();
+    std::string pwd = word;
+
+    // If the word is already too long, truncate it
+    if (pwd.size() > length) {
+        pwd = pwd.substr(0, length);
+        return pwd;
+    }
+
+    // Choose a weak pattern - still random but with more predictable suffixes
+    std::uniform_int_distribution<int> pattern_dist(0, 4);
+    int pattern = pattern_dist(engine_);
+
+    switch (pattern) {
+        case 0: {
+            // word + random 3-digit number (weak: 000-999)
+            std::uniform_int_distribution<int> num_dist(0, 999);
+            pwd += std::to_string(num_dist(engine_));
+            break;
+        }
+        case 1: {
+            // word + random 4-digit number (weak: 0000-9999)
+            std::uniform_int_distribution<int> num_dist2(0, 9999);
+            pwd += std::to_string(num_dist2(engine_));
+            break;
+        }
+        case 2: {
+            // word + random 2-digit number (weak: 00-99)
+            std::uniform_int_distribution<int> num_dist3(0, 99);
+            pwd += std::to_string(num_dist3(engine_));
+            break;
+        }
+        case 3: {
+            // word + random repeated digit (weak: 00, 11, 22, ..., 99)
+            std::uniform_int_distribution<int> d(0, 9);
+            char digit = '0' + static_cast<char>(d(engine_));
+            pwd += std::string(2, digit);
+            break;
+        }
+        case 4: {
+            // word + random lowercase letter repeated (weak: aa, bb, cc, ..., zz)
+            std::uniform_int_distribution<int> l(0, 25);
+            char letter = 'a' + static_cast<char>(l(engine_));
+            pwd += std::string(2, letter);
+            break;
+        }
+    }
+
+    // Trim or pad to requested length
+    if (pwd.size() > length) {
+        pwd = pwd.substr(0, length);
+    } else {
+        // pad with lowercase letters (weak)
+        while (pwd.size() < length) {
+            pwd += select_char(lowercase_string);
+        }
+    }
+
+    return pwd;
 }
