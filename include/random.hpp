@@ -13,6 +13,7 @@ class RNG{
         static std::mutex engine_mutex_;
     
     public:
+        static std::set<std::string> parse_blacklist(const std::string& blacklist_str);
         static void seed(std::optional<uint64_t> seedValue);
 
         static std::string generate(
@@ -23,7 +24,8 @@ class RNG{
             bool requires_special = true,
             const std::string& custom_chars = "",
             const std::string& exclude_chars = "",
-            const std::set<std::string>& blacklist = std::set<std::string>()
+            const std::set<std::string>& blacklist = std::set<std::string>(),
+            bool exclude_ambiguous = false
         );
 
         static char select_char(const std::string& charset);
@@ -50,17 +52,18 @@ class RNG{
         static std::string exclude_chars_from_pool(const std::string& pool, const std::string& exclude);
 
         /**
+         * @brief Exclude ambiguous characters from a pool
+         * @param pool The original character pool
+         * @param exclude_ambiguous Whether to exclude ambiguous characters
+         * @return The pool with ambiguous characters removed if requested
+         */
+        static std::string exclude_ambiguous_from_pool(const std::string& pool, bool exclude_ambiguous);
+
+        /**
          * @brief Calculate the entropy of a password in bits
          * @param password The password to calculate entropy for
          * @return Entropy in bits (higher = more secure)
          */
         static double calculate_entropy(const std::string& password);
 
-        /**
-         * @brief Parse blacklist string in format {password1,password2,password3}
-         * @param blacklist_str The blacklist string from command line
-         * @return A set of blacklisted passwords
-         */
-        static std::set<std::string> parse_blacklist(const std::string& blacklist_str);
-
-};
+ };

@@ -40,8 +40,8 @@ namespace UI{
         std::cout << "\n--------------------------------------------------\n";
     }
     
-    void print_charset_info(const std::string& custom_chars, const std::string& exclude_chars, bool no_color){
-        if (custom_chars.empty() && exclude_chars.empty()) {
+    void print_charset_info(const std::string& custom_chars, const std::string& exclude_chars, bool no_color, bool exclude_ambiguous){
+        if (custom_chars.empty() && exclude_chars.empty() && !exclude_ambiguous) {
             return;
         }
         
@@ -61,6 +61,13 @@ namespace UI{
             if (!no_color) std::cout << "\033[33m"; // Yellow
             std::cout << "  Excluded Characters: " << exclude_chars << "\n";
             std::cout << "  Excluded Count: " << exclude_chars.size() << " characters\n";
+            if (!no_color) std::cout << "\033[0m";
+        }
+        
+        if (exclude_ambiguous) {
+            if (!no_color) std::cout << "\033[36m"; // Cyan
+            std::cout << "  Excluded Ambiguous Characters: 0/O, 1/l/I\n";
+            std::cout << "  This prevents confusion between similar-looking characters\n";
             if (!no_color) std::cout << "\033[0m";
         }
         

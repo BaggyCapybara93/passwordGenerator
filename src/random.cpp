@@ -11,6 +11,13 @@ static const std::string lowercase_string = "abcdefghijklmnopqrstuvwxyz";
 static const std::string digits_string = "0123456789";
 static const std::string special_string = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
 
+/**
+ * @brief Ambiguous characters that can be confused with each other
+ * - 0 (zero) and O (uppercase o)
+ * - 1 (one) and l (lowercase L) and I (uppercase i)
+ */
+static const std::string ambiguous_chars = "0O1lI";
+
 std::mt19937_64 RNG::engine_;
 std::random_device RNG::device_;
 std::mutex RNG::engine_mutex_;
@@ -20,7 +27,7 @@ std::mutex RNG::engine_mutex_;
  * @param blacklist_str The blacklist string from command line
  * @return A set of blacklisted passwords
  */
-std::set<std::string> parse_blacklist(const std::string& blacklist_str) {
+std::set<std::string> RNG::parse_blacklist(const std::string& blacklist_str) {
     std::set<std::string> blacklist;
     
     if (blacklist_str.empty() || blacklist_str.front() != '{' || blacklist_str.back() != '}') {
@@ -91,6 +98,29 @@ std::string RNG::exclude_chars_from_pool(const std::string& pool, const std::str
     return result;
 }
 
+/**
+ * @brief Exclude ambiguous characters from a pool
+ * @param pool The original character pool
+ * @param exclude_ambiguous Whether to exclude ambiguous characters
+ * @return The pool with ambiguous characters removed if requested
+ */
+std::string RNG::exclude_ambiguous_from_pool(const std::string& pool, bool exclude_ambiguous) {
+    if (!exclude_ambiguous) {
+        return pool;
+    }
+    
+    std::string result;
+    result.reserve(pool.size());
+    
+    for (char c : pool) {
+        if (ambiguous_chars.find(c) == std::string::npos) {
+            result += c;
+        }
+    }
+    
+    return result;
+}
+
 void RNG::seed(std::optional<uint64_t> seed_value){
     std::lock_guard<std::mutex> lock(engine_mutex_);
 
@@ -119,7 +149,7 @@ char RNG::select_char(const std::string& charset){
     return charset[index];
 }
 
-std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_lowercase, bool requires_digits, bool requires_special, const std::string& custom_chars, const std::string& exclude_chars, const std::set<std::string>& blacklist) {
+std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_lowercase, bool requires_digits, bool requires_special, const std::string& custom_chars, const std::string& exclude_chars, const std::set<std::string>& blacklist, bool exclude_ambiguous) {
     std::vector<char> result;
     
     // Determine which character pools to use
@@ -148,6 +178,11 @@ std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_
             std::string default_pool = build_default_pool();
             std::string excluded_pool = exclude_chars_from_pool(default_pool, exclude_chars);
             
+            // Apply ambiguous character exclusion if requested
+            if (exclude_ambiguous) {
+                excluded_pool = RNG::exclude_ambiguous_from_pool(excluded_pool, exclude_ambiguous);
+            }
+            
             if (requires_uppercase) up_pool = excluded_pool;
             if (requires_lowercase) low_pool = excluded_pool;
             if (requires_digits) dig_pool = excluded_pool;
@@ -158,6 +193,14 @@ std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_
             if (requires_lowercase) low_pool = lowercase_string;
             if (requires_digits) dig_pool = digits_string;
             if (requires_special) sp_pool = special_string;
+            
+            // Apply ambiguous character exclusion to default pools if requested
+            if (exclude_ambiguous) {
+                if (requires_uppercase) up_pool = RNG::exclude_ambiguous_from_pool(up_pool, exclude_ambiguous);
+                if (requires_lowercase) low_pool = RNG::exclude_ambiguous_from_pool(low_pool, exclude_ambiguous);
+                if (requires_digits) dig_pool = RNG::exclude_ambiguous_from_pool(dig_pool, exclude_ambiguous);
+                if (requires_special) sp_pool = RNG::exclude_ambiguous_from_pool(sp_pool, exclude_ambiguous);
+            }
         }
     }
 

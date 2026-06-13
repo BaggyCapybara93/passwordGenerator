@@ -20,6 +20,7 @@ struct Settings {
     std::string custom_chars = "";           // Custom character pool
     std::string exclude_chars = "";          // Characters to exclude from default pools
     std::string blacklist = "";              // Comma-separated list of passwords to blacklist (e.g., "{pass1,pass2,pass3}")
+    bool exclude_ambiguous = false;          // Exclude ambiguous characters (0/O, 1/l/I)
 };
 
 namespace parse_arguments {
