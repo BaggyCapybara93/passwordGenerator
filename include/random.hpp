@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <set>
 
 class RNG{
     private:
@@ -21,7 +22,8 @@ class RNG{
             bool requires_digits = true,
             bool requires_special = true,
             const std::string& custom_chars = "",
-            const std::string& exclude_chars = ""
+            const std::string& exclude_chars = "",
+            const std::set<std::string>& blacklist = std::set<std::string>()
         );
 
         static char select_char(const std::string& charset);
@@ -53,5 +55,12 @@ class RNG{
          * @return Entropy in bits (higher = more secure)
          */
         static double calculate_entropy(const std::string& password);
+
+        /**
+         * @brief Parse blacklist string in format {password1,password2,password3}
+         * @param blacklist_str The blacklist string from command line
+         * @return A set of blacklisted passwords
+         */
+        static std::set<std::string> parse_blacklist(const std::string& blacklist_str);
 
 };

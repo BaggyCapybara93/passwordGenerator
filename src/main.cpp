@@ -16,6 +16,9 @@ int main(int argc, char* arg[]){
 
     RNG::seed(settings.seed); 
 
+    // Parse blacklist if provided
+    std::set<std::string> blacklist = RNG::parse_blacklist(settings.blacklist);
+
     for (int i = 1; i <= settings.num_passwords; i++){
         std::string password;
         try {
@@ -26,7 +29,8 @@ int main(int argc, char* arg[]){
                 settings.req_digits, 
                 settings.req_special,
                 settings.custom_chars,
-                settings.exclude_chars
+                settings.exclude_chars,
+                blacklist
             );
         } catch (const std::invalid_argument& e) {
             UI::print_colored("Error generating password: " + std::string(e.what()), UI::Color::Red);

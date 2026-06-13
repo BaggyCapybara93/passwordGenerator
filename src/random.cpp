@@ -2,6 +2,9 @@
 #include <iostream>
 #include <algorithm>
 #include <cctype>
+#include <sstream>
+#include <set>
+#include <string>
 
 static const std::string uppercase_string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static const std::string lowercase_string = "abcdefghijklmnopqrstuvwxyz";
@@ -11,6 +14,32 @@ static const std::string special_string = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
 std::mt19937_64 RNG::engine_;
 std::random_device RNG::device_;
 std::mutex RNG::engine_mutex_;
+
+/**
+ * @brief Parse blacklist string in format {password1,password2,password3}
+ * @param blacklist_str The blacklist string from command line
+ * @return A set of blacklisted passwords
+ */
+std::set<std::string> parse_blacklist(const std::string& blacklist_str) {
+    std::set<std::string> blacklist;
+    
+    if (blacklist_str.empty() || blacklist_str.front() != '{' || blacklist_str.back() != '}') {
+        return blacklist;
+    }
+    
+    // Remove braces and split by comma
+    std::string content = blacklist_str.substr(1, blacklist_str.length() - 2);
+    std::stringstream ss(content);
+    std::string entry;
+    
+    while (std::getline(ss, entry, ',')) {
+        if (!entry.empty()) {
+            blacklist.insert(entry);
+        }
+    }
+    
+    return blacklist;
+}
 
 /**
  * @brief Build the default character pool (uppercase + lowercase + digits + special)
@@ -90,7 +119,7 @@ char RNG::select_char(const std::string& charset){
     return charset[index];
 }
 
-std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_lowercase, bool requires_digits, bool requires_special, const std::string& custom_chars, const std::string& exclude_chars) {
+std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_lowercase, bool requires_digits, bool requires_special, const std::string& custom_chars, const std::string& exclude_chars, const std::set<std::string>& blacklist) {
     std::vector<char> result;
     
     // Determine which character pools to use
@@ -173,7 +202,15 @@ std::string RNG::generate(size_t length, bool requires_uppercase, bool requires_
         std::shuffle(result.begin(), result.end(), engine_);
     }
 
-    return std::string(result.begin(), result.end());
+    std::string password = std::string(result.begin(), result.end());
+    
+    // Check if password is in blacklist
+    if (!blacklist.empty() && blacklist.find(password) != blacklist.end()) {
+        // Password is blacklisted, regenerate
+        return generate(length, requires_uppercase, requires_lowercase, requires_digits, requires_special, custom_chars, exclude_chars, blacklist);
+    }
+
+    return password;
 }
 
 /**

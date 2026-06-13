@@ -31,6 +31,8 @@ namespace parse_arguments {
                  "Custom character pool (e.g., \"abcXYZ123!@#\")")
                 ("exclude-chars", po::value<std::string>(&settings.exclude_chars),
                  "Characters to exclude from default pools (e.g., \"!@#$\")")
+                ("blacklist", po::value<std::string>(&settings.blacklist),
+                 "Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")")
                 ;
 
             // Parse command line arguments
@@ -70,6 +72,14 @@ namespace parse_arguments {
                 }
             }
 
+            // Validate blacklist format
+            if (!settings.blacklist.empty()) {
+                if (settings.blacklist.empty() || settings.blacklist.front() != '{' || settings.blacklist.back() != '}') {
+                    std::cerr << "Error: Blacklist must be in format {password1,password2,password3}.\n";
+                    return false;
+                }
+            }
+
             // Validate settings
             if (settings.desired_length < 1) {
                 std::cerr << "Error: Password length must be at least 1.\n";
@@ -104,11 +114,13 @@ namespace parse_arguments {
         std::cout << "  --no-special            Disable special character requirement\n";
         std::cout << "  --num-passwords N       Number of passwords to generate (default: 1)\n";
         std::cout << "  --seed N                Use deterministic seed for random generation\n";
+        std::cout << "  --blacklist S           Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")\n";
         std::cout << "  --help, -h              Show this help message and exit\n\n";
         std::cout << "Example:\n";
         std::cout << "  " << program_name << " --length 32 --no-special --num-passwords 5\n";
         std::cout << "  " << program_name << " --length 16 --custom-chars \"abcXYZ123!@#\"\n";
         std::cout << "  " << program_name << " --length 16 --exclude-chars \"!@#$\"\n";
+        std::cout << "  " << program_name << " --length 12 --blacklist \"{weak123,default,password}\"\n";
     }
 
 } // namespace parse_arguments
