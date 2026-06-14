@@ -19,11 +19,12 @@ struct Settings {
     bool exclude_ambiguous = false;          // Exclude ambiguous characters (0/O, 1/l/I)
     double min_entropy = 0.0;                // Minimum entropy threshold in bits (default: 0 means no minimum)
     bool is_honeypassword = false;
+    double guesses_per_second = 1e9;
+    
     //Allow editing of these in the future 
     const std::string uppercase_string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const std::string lowercase_string = "abcdefghijklmnopqrstuvwxyz";
     const std::string digits_string = "0123456789";
     const std::string special_string = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
     const std::string ambiguous_chars = "0O1lI";
-
 };

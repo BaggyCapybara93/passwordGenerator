@@ -232,16 +232,20 @@ double Password_Generator::calculate_entropy(const std::string& password) {
 }
 
 std::string Password_Generator::calculate_security_score(const double& entropy) {
-    std::string security_rating;
-    // Determine security rating based on entropy
-    if (entropy < 40.0) {
-        security_rating = "Weak";
-    } else if (entropy < 60.0) {
-        security_rating = "Moderate";
-    } else {
-        security_rating = "Strong";
-    }
-    return security_rating;
+    long double total_possibilities = powl(2.0L, entropy);
+    long double expected_guesses = total_possibilities / 2.0L;
+    long double seconds = expected_guesses / settings_.get()->guesses_per_second;
+
+    if (seconds < 60)
+        return "Very Weak";
+    else if (seconds < 3600)
+        return "Weak";
+    else if (seconds < 2629800) // ~1 month
+        return "Moderate";
+    else if (seconds < 3.15576e9) // ~100 years
+        return "Strong";
+    else
+        return "Very Strong";
 }
 
 void Password_Generator::display_password(const std::string& password) {
