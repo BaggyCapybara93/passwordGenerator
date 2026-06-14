@@ -1,6 +1,7 @@
 #include "random.hpp"
 #include "ui.hpp"
 #include "parse_arguments.hpp"
+#include "settings.hpp"
 #include <iostream>
 
 
