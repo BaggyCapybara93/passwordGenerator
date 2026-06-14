@@ -16,7 +16,7 @@ namespace parse_arguments {
             po::options_description desc("Allowed options");
             desc.add_options()
                 ("help", "Show help message")
-                ("length", po::value<size_t>(&settings.desired_length),
+                ("length", po::value<size_t>(&settings.length),
                  "Set desired password length (default: 12)")
                 ("no-uppercase", "Disable uppercase requirement")
                 ("no-lowercase", "Disable lowercase requirement")
@@ -106,7 +106,7 @@ namespace parse_arguments {
             }
 
             // Validate settings
-            if (settings.desired_length < 1) {
+            if (settings.length < 1) {
                 std::cerr << "Error: Password length must be at least 1.\n";
                 return false;
             }
