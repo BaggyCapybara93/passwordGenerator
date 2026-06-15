@@ -327,6 +327,9 @@ void Password_Generator::generate_passwords(int num_passwords) {
         }
 
         display_password(password);
+
+        // Add the generated password to the blacklist, preventing repeated password being generated
+        blacklist.emplace(password);
     }
 
     UI::print_colored("Password generation complete.", UI::Color::Green, true, settings_.get()->no_color);
