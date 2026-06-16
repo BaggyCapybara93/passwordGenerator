@@ -2,7 +2,7 @@
 #include "ui.hpp"
 #include "parse_arguments.hpp"
 #include "settings.hpp"
-#include "password_generator.hpp"
+#include "password/password_generator.hpp"
 #include <iostream>
 #include <memory>
 

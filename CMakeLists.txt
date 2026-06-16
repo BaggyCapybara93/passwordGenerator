@@ -37,7 +37,9 @@ endif()
 
 find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
 
-target_include_directories(PasswordGenerator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(PasswordGenerator PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(PasswordGenerator PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${Boost_INCLUDE_DIRS}
+)
 
 target_link_libraries(PasswordGenerator PRIVATE Boost::program_options)
