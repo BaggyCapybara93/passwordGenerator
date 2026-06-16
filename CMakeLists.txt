@@ -23,7 +23,10 @@ set(SOURCE_FILES
     src/ui.cpp
     src/parse_arguments.cpp
     src/main.cpp
-    src/password_generator.cpp
+    src/password/password_generator.cpp
+    src/password/password_entropy.cpp
+    src/password/password_blacklist.cpp
+    src/password/password_honey.cpp
 )
 
 add_executable(PasswordGenerator ${SOURCE_FILES})

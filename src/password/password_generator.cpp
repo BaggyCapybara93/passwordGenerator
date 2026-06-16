@@ -1,10 +1,14 @@
-#include "password_generator.hpp"
-#include "ui.hpp"
 #include <sstream>
 #include <cmath>
 #include <random>
 #include <algorithm>
 #include <cctype>
+
+#include "password_generator.hpp"
+#include "password_entropy.hpp"
+#include "password_blacklist.hpp"
+#include "password_honey.hpp"
+#include "ui.hpp"
 
 std::string Password_Generator::generate_password() {
     std::vector<char> result;
@@ -113,141 +117,6 @@ std::string Password_Generator::generate_password() {
     return password;
 }
 
-std::unordered_set<std::string> Password_Generator::parse_blacklist(const std::string& blacklist_str) {
-    std::unordered_set<std::string> blacklist;
-    
-    if (blacklist_str.empty() || blacklist_str.front() != '{' || blacklist_str.back() != '}') {
-        return blacklist;
-    }
-            
-    // Remove braces and split by comma
-    std::string content = blacklist_str.substr(1, blacklist_str.length() - 2);
-    std::stringstream ss(content);
-    std::string entry;
-    
-    while (std::getline(ss, entry, ',')) {
-        if (!entry.empty()) {
-            blacklist.insert(entry);
-        }
-    }
-    
-    return blacklist;
-}
-
-std::string Password_Generator::generate_honey_password() {
-    std::string word = rng_.get()->random_word();
-    std::string pwd = word;
-
-    // If the word is already too long, truncate it
-    if (pwd.size() > settings_.get()->length) {
-        pwd = pwd.substr(0, settings_.get()->length);
-        return pwd;
-    }
-
-    // Choose a weak pattern - still random but with more predictable suffixes
-    std::uniform_int_distribution<int> pattern_dist(0, 4);
-    int pattern = pattern_dist(rng_.get()->engine_);
-
-    switch (pattern) {
-        case 0: {
-            // word + random 3-digit number (weak: 000-999)
-            std::uniform_int_distribution<int> num_dist(0, 999);
-            pwd += std::to_string(num_dist(rng_.get()->engine_));
-            break;
-        }
-        case 1: {
-            // word + random 4-digit number (weak: 0000-9999)
-            std::uniform_int_distribution<int> num_dist2(0, 9999);
-            pwd += std::to_string(num_dist2(rng_.get()->engine_));
-            break;
-        }
-        case 2: {
-            // word + random 2-digit number (weak: 00-99)
-            std::uniform_int_distribution<int> num_dist3(0, 99);
-            pwd += std::to_string(num_dist3(rng_.get()->engine_));
-            break;
-        }
-        case 3: {
-            // word + random repeated digit (weak: 00, 11, 22, ..., 99)
-            std::uniform_int_distribution<int> d(0, 9);
-            char digit = '0' + static_cast<char>(d(rng_.get()->engine_));
-            pwd += std::string(2, digit);
-            break;
-        }
-        case 4: {
-            // word + random lowercase letter repeated (weak: aa, bb, cc, ..., zz)
-            std::uniform_int_distribution<int> l(0, 25);
-            char letter = 'a' + static_cast<char>(l(rng_.get()->engine_));
-            pwd += std::string(2, letter);
-            break;
-        }
-    }
-
-    // Trim or pad to requested length
-    if (pwd.size() > settings_.get()->length) {
-        pwd = pwd.substr(0, settings_.get()->length);
-    } else {
-        // pad with lowercase letters (weak)
-        while (pwd.size() < settings_.get()->length) {
-            pwd += rng_.get()->select_char(settings_.get()->lowercase_string);
-        }
-    }
-
-    return pwd;
-}
-
-double Password_Generator::calculate_entropy(const std::string& password) {
-    if (password.empty()) {
-        return 0.0;
-    }
-    
-    // Pool sizes for each character type
-    const size_t uppercase_size = settings_.get()->uppercase_string.size();
-    const size_t lowercase_size = settings_.get()->lowercase_string.size();
-    const size_t digits_size = settings_.get()->digits_string.size();
-    const size_t special_size = settings_.get()->special_string.size();
-    
-    // Calculate entropy: sum of log2(pool_size) for each character
-    double entropy = 0.0;
-    for (size_t i = 0; i < password.size(); ++i) {
-        char c = password[i];
-        double pool_size = 0.0;
-        
-        if (c >= 'A' && c <= 'Z') {
-            pool_size = static_cast<double>(uppercase_size);
-        } else if (c >= 'a' && c <= 'z') {
-            pool_size = static_cast<double>(lowercase_size);
-        } else if (c >= '0' && c <= '9') {
-            pool_size = static_cast<double>(digits_size);
-        } else if (c >= '!' && c <= '~') {  // Special chars are in ASCII range 33-126
-            pool_size = static_cast<double>(special_size);
-        }
-        
-        if (pool_size > 0) {
-            entropy += std::log2(pool_size);
-        }
-    }
-    
-    return entropy;
-}
-
-std::string Password_Generator::calculate_security_score(const double& entropy) {
-    long double total_possibilities = powl(2.0L, entropy);
-    long double expected_guesses = total_possibilities / 2.0L;
-    long double seconds = expected_guesses / settings_.get()->guesses_per_second;
-
-    if (seconds < 60)
-        return "Very Weak";
-    else if (seconds < 3600)
-        return "Weak";
-    else if (seconds < 2629800) // ~1 month
-        return "Moderate";
-    else if (seconds < 3.15576e9) // ~100 years
-        return "Strong";
-    else
-        return "Very Strong";
-}
-
 void Password_Generator::display_password(const std::string& password) {
     // Check minimum entropy requirement first
     bool entropy_check_passed = true;
@@ -255,10 +124,10 @@ void Password_Generator::display_password(const std::string& password) {
     std::string security_rating;
     
     if (settings_.get()->min_entropy > 0) {
-        entropy = calculate_entropy(password);
+        entropy = calculate_entropy(password, settings_);
         
         // Determine security rating based on entropy
-        security_rating = calculate_security_score(entropy);
+        security_rating = calculate_security_score(entropy, settings_);
         
         // Check if password meets minimum entropy requirement
         if (entropy < settings_.get()->min_entropy) {
@@ -266,8 +135,8 @@ void Password_Generator::display_password(const std::string& password) {
         }
     } else {
         // No minimum entropy set, calculate and display entropy
-        entropy = calculate_entropy(password);
-        security_rating = calculate_security_score(entropy);
+        entropy = calculate_entropy(password, settings_);
+        security_rating = calculate_security_score(entropy, settings_);
     }
     
     // Only display password if it passes entropy check (or if no check is enabled)
@@ -314,7 +183,7 @@ void Password_Generator::generate_passwords(int num_passwords) {
         try {
             // Use honey password generation if the flag is set
             if (settings_.get()->is_honeypassword) {
-                password = generate_honey_password();
+                password = generate_honey_password(rng_, settings_);
             } else {
                 password = generate_password();
             }

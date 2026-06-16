@@ -28,34 +28,6 @@ class Password_Generator{
         void generate_passwords(int num_passwords);
 
         /**
-         * @brief Parse the blacklist 
-         * @param blacklist_str The string of the blacklist
-         * @return Unordered set of blacklisted strings
-         */
-        std::unordered_set<std::string> parse_blacklist(const std::string& blacklist_str);
-
-        /**
-         * @brief Generate a honey password (intentionally weak, designed to be compromised)
-         * @param length The desired length of the honey password
-         * @return A weak password that is commonly used and easily guessable
-         */
-        std::string generate_honey_password();
-
-        /**
-         * @brief Calculate the entropy of a password in bits
-         * @param password The password to calculate entropy for
-         * @return Entropy in bits (higher = more secure)
-         */
-        double calculate_entropy(const std::string& password);
-
-        /**
-         * @brief Calculate the security score of a password
-         * @param entropy The entropy value to calculate security score for
-         * @return Security score as a string(Weak, Moderate, Strong)
-         */
-        std::string calculate_security_score(const double& entropy);
-
-        /**
          * @brief Generate and display a single password
          * @param password The password to display
          */
