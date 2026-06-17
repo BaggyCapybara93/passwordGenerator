@@ -20,13 +20,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")
 
 set(SOURCE_FILES
     src/random.cpp
-    src/ui.cpp
     src/parse_arguments.cpp
     src/main.cpp
     src/password/password_generator.cpp
     src/password/password_entropy.cpp
     src/password/password_blacklist.cpp
     src/password/password_honey.cpp
+    src/ui/color.cpp
+    src/ui/ansi_printer.cpp
+    src/ui/ui_helpers.cpp
 )
 
 add_executable(PasswordGenerator ${SOURCE_FILES})

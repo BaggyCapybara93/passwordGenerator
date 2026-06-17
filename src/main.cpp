@@ -1,5 +1,5 @@
 #include "random.hpp"
-#include "ui.hpp"
+#include "ui/ui.hpp"
 #include "parse_arguments.hpp"
 #include "settings.hpp"
 #include "password/password_generator.hpp"
