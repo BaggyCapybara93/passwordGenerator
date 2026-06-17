@@ -1,5 +1,7 @@
 #include "password_honey.hpp"
 
+//This isnt great and probably should be removed, in favor of a more robust honey password generation method
+//Or changed to be weaker
 std::string generate_honey_password(std::shared_ptr<RNG> rng, std::shared_ptr<Settings> settings) {
     std::string word = rng->random_word();
     std::string pwd = word;
@@ -16,35 +18,39 @@ std::string generate_honey_password(std::shared_ptr<RNG> rng, std::shared_ptr<Se
 
     switch (pattern) {
         case 0: {
-            // word + random 3-digit number (weak: 000-999)
-            std::uniform_int_distribution<int> num_dist(0, 999);
-            pwd += std::to_string(num_dist(rng->engine_));
+            // word + 1 random digit (0–9)
+            std::uniform_int_distribution<int> d(0, 9);
+            pwd += std::to_string(d(rng->engine_));
             break;
         }
         case 1: {
-            // word + random 4-digit number (weak: 0000-9999)
-            std::uniform_int_distribution<int> num_dist2(0, 9999);
-            pwd += std::to_string(num_dist2(rng->engine_));
+            // word + predictable suffix from a tiny list
+            static const std::vector<std::string> suffixes = {
+                "123", "111", "abc", "aaa", "000"
+            };
+            std::uniform_int_distribution<int> s(0, static_cast<int>(suffixes.size() - 1));
+            pwd += suffixes[static_cast<size_t>(s(rng->engine_))];
             break;
         }
         case 2: {
-            // word + random 2-digit number (weak: 00-99)
-            std::uniform_int_distribution<int> num_dist3(0, 99);
-            pwd += std::to_string(num_dist3(rng->engine_));
+            // word + repeated letter (aaa, bbb, ccc...)
+            std::uniform_int_distribution<int> l(0, 25);
+            char letter = 'a' + static_cast<char>(l(rng->engine_));
+            pwd += std::string(3, letter);
             break;
         }
         case 3: {
-            // word + random repeated digit (weak: 00, 11, 22, ..., 99)
-            std::uniform_int_distribution<int> d(0, 9);
-            char digit = '0' + static_cast<char>(d(rng->engine_));
-            pwd += std::string(2, digit);
+            // word + low‑entropy number (0–19)
+            std::uniform_int_distribution<int> n(0, 19);
+            pwd += std::to_string(n(rng->engine_));
             break;
         }
         case 4: {
-            // word + random lowercase letter repeated (weak: aa, bb, cc, ..., zz)
+            // word + fixed pattern: letter + digit
             std::uniform_int_distribution<int> l(0, 25);
-            char letter = 'a' + static_cast<char>(l(rng->engine_));
-            pwd += std::string(2, letter);
+            std::uniform_int_distribution<int> d(0, 9);
+            pwd += static_cast<char>('a' + l(rng->engine_));
+            pwd += static_cast<char>('0' + d(rng->engine_));
             break;
         }
     }
