@@ -15,6 +15,8 @@ class Password_Generator{
         std::shared_ptr<Settings> settings_;
         std::shared_ptr<RNG> rng_; 
 
+        std::shared_ptr<std::unordered_set<std::string>> blacklist_;
+
         /**
          * @brief Generate a password
          * @return A string of the password generated

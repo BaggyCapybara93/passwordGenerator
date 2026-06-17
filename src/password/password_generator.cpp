@@ -109,8 +109,9 @@ std::string Password_Generator::generate_password() {
     std::string password = std::string(result.begin(), result.end());
     
     // Check if password is in blacklist
-    if (!settings_.get()->blacklist.empty() && settings_.get()->blacklist.find(password) != std::string::npos) {
-        // Password is blacklisted, regenerate
+    if (blacklist_ && blacklist_.get()->find(password) != blacklist_.get()->end()) {
+        // Add the generated password to the blacklist, preventing repeated password being generated
+        blacklist_.get()->emplace(password);
         return generate_password();
     }
 
@@ -175,9 +176,6 @@ void Password_Generator::display_password(const std::string& password) {
 }
 
 void Password_Generator::generate_passwords(int num_passwords) {
-    // Parse blacklist if provided
-    std::unordered_set<std::string> blacklist = parse_blacklist(settings_.get()->blacklist);
-
     for (int i = 1; i <= num_passwords; i++){
         std::string password;
         try {
@@ -196,9 +194,6 @@ void Password_Generator::generate_passwords(int num_passwords) {
         }
 
         display_password(password);
-
-        // Add the generated password to the blacklist, preventing repeated password being generated
-        blacklist.emplace(password);
     }
 
     UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
@@ -208,6 +203,9 @@ void Password_Generator::generate_passwords(int num_passwords) {
 }
 
 void Password_Generator::initialize() {
+    blacklist_ = std::make_shared<std::unordered_set<std::string>>();
+    *blacklist_.get() = parse_blacklist(settings_.get()->blacklist);
+
     // Initialize the RNG with settings and optional seed
     if (settings_.get()->seed.has_value()) {
         rng_.get()->seed(settings_.get()->seed);
