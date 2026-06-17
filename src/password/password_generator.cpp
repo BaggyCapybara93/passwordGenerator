@@ -143,34 +143,34 @@ void Password_Generator::display_password(const std::string& password) {
     if (entropy_check_passed) {
         // Display warning for honey passwords
         if (settings_.get()->is_honeypassword) {
-            UI::print_with_color("⚠️  HONEY PASSWORD WARNING: This password is intentionally weak!", UI::Color::Red, true, settings_.get()->no_color);
-            UI::print_with_color("==================================================", UI::Color::Blue, true, settings_.get()->no_color);
-            UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, true, settings_.get()->no_color);
-            UI::print_with_color("==================================================", UI::Color::Blue, true, settings_.get()->no_color);
+            UI::print_with_color("⚠️  HONEY PASSWORD WARNING: This password is intentionally weak!", UI::Color::Red, settings_.get()->no_color, true);
+            UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
+            UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, settings_.get()->no_color, true);
+            UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
             
-            UI::print_with_color(password, UI::Color::Yellow, true, settings_.get()->no_color); // Yellow color for honey password
+            UI::print_with_color(password, UI::Color::Yellow, settings_.get()->no_color, true); // Yellow color for honey password
             
             // Display entropy and security rating
-            UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Red, true, settings_.get()->no_color);
-            UI::print_with_color("Security Rating: " + security_rating, UI::Color::Red, true, settings_.get()->no_color);
-            UI::print_with_color("⚠️  This password is designed to be compromised for security testing purposes.", UI::Color::Red, true, settings_.get()->no_color);
+            UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Red, settings_.get()->no_color, true);
+            UI::print_with_color("Security Rating: " + security_rating, UI::Color::Red, settings_.get()->no_color, true);
+            UI::print_with_color("⚠️  This password is designed to be compromised for security testing purposes.", UI::Color::Red, settings_.get()->no_color, true);
         } else {
-            UI::print_with_color("==================================================", UI::Color::Blue, true, settings_.get()->no_color);
-            UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, true, settings_.get()->no_color);
-            UI::print_with_color("==================================================", UI::Color::Blue, true, settings_.get()->no_color);
+            UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
+            UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, settings_.get()->no_color, true);
+            UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
             
-            UI::print_with_color(password, UI::Color::Green, true, settings_.get()->no_color); // No newline after the password
+            UI::print_with_color(password, UI::Color::Green, settings_.get()->no_color, true); // No newline after the password
             
             // Display entropy and security rating
-            UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, true, settings_.get()->no_color);
-            UI::print_with_color("Security Rating: " + security_rating, UI::Color::Yellow, true, settings_.get()->no_color);
+            UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, settings_.get()->no_color, true);
+            UI::print_with_color("Security Rating: " + security_rating, UI::Color::Yellow, settings_.get()->no_color, true);
         }
     } else {
         // Password failed entropy check, show warning without displaying password
-        UI::print_with_color("WARNING: Generated password does not meet minimum entropy requirement!", UI::Color::Red, true, settings_.get()->no_color);
+        UI::print_with_color("WARNING: Generated password does not meet minimum entropy requirement!", UI::Color::Red, settings_.get()->no_color, true);
         UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits (minimum: " + 
-                        std::to_string(static_cast<long long>(settings_.get()->min_entropy)) + " bits)", UI::Color::Red, true, settings_.get()->no_color);
-        UI::print_with_color("Regenerating password...", UI::Color::Cyan, true, settings_.get()->no_color);
+                        std::to_string(static_cast<long long>(settings_.get()->min_entropy)) + " bits)", UI::Color::Red, settings_.get()->no_color, true);
+        UI::print_with_color("Regenerating password...", UI::Color::Cyan, settings_.get()->no_color, true);
     }
 }
 
@@ -188,10 +188,10 @@ void Password_Generator::generate_passwords(int num_passwords) {
                 password = generate_password();
             }
         } catch (const std::invalid_argument& e) {
-            UI::print_with_color("Error generating password: " + std::string(e.what()), UI::Color::Red, true, settings_.get()->no_color);
+            UI::print_with_color("Error generating password: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
             return;
         } catch (const std::exception& e) {
-            UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, true, settings_.get()->no_color);
+            UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
             return;
         }
 
@@ -201,7 +201,7 @@ void Password_Generator::generate_passwords(int num_passwords) {
         blacklist.emplace(password);
     }
 
-    UI::print_with_color("Password generation complete.", UI::Color::Green, true, settings_.get()->no_color);
+    UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
 
     // Reset terminal colors
     UI::reset_color(settings_.get()->no_color);
@@ -216,7 +216,7 @@ void Password_Generator::initialize() {
         rng_.get()->seed(std::nullopt);
     }
     
-    UI::print_with_color("Password Generator initialized.", UI::Color::Green, true, settings_.get()->no_color);
+    UI::print_with_color("Password Generator initialized.", UI::Color::Green, settings_.get()->no_color, true);
     
     // Generate the specified number of passwords
     generate_passwords(settings_.get()->num_passwords);
