@@ -16,10 +16,12 @@ struct Settings {
     std::string custom_chars = "";           // Custom character pool
     std::string exclude_chars = "";          // Characters to exclude from default pools
     std::string blacklist = "";              // Comma-separated list of passwords to blacklist (e.g., "{pass1,pass2,pass3}")
+    std::string blacklist_file = "";         // Path to blacklist file
     bool exclude_ambiguous = false;          // Exclude ambiguous characters (0/O, 1/l/I)
     double min_entropy = 0.0;                // Minimum entropy threshold in bits (default: 0 means no minimum)
     bool is_honeypassword = false;
     double guesses_per_second = 1e9;
+    std::string save_file = "";              // Path to save generated passwords
     
     //Allow editing of these in the future 
     const std::string uppercase_string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -27,4 +29,8 @@ struct Settings {
     const std::string digits_string = "0123456789";
     const std::string special_string = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
     const std::string ambiguous_chars = "0O1lI";
+    
+    // Default file paths
+    const std::string default_blacklist_file = "blacklist.txt";
+    const std::string default_save_file = "saved_passwords.txt";
 };

@@ -6,9 +6,11 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
 #include <random.hpp>
 #include <settings.hpp>
+#include "file_manager/file_manager.hpp"
 
 class Password_Generator{
     private:
@@ -16,6 +18,8 @@ class Password_Generator{
         std::shared_ptr<RNG> rng_; 
 
         std::shared_ptr<std::unordered_set<std::string>> blacklist_;
+        std::shared_ptr<file_manager> file_manager_;
+        std::vector<std::string> generated_passwords_;
 
         /**
          * @brief Generate a password
@@ -35,9 +39,14 @@ class Password_Generator{
          */
         void display_password(const std::string& password);
 
+        /**
+         * @brief Save generated passwords to file
+         */
+        void save_passwords_to_file();
+
     public:
         Password_Generator(std::shared_ptr<Settings> settings, std::shared_ptr<RNG> rng)
-            : settings_(settings), rng_(rng) {}
+            : settings_(settings), rng_(rng), file_manager_(std::make_shared<file_manager>()) {}
 
         /**
          * @brief Starts the password_generator

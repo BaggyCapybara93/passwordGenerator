@@ -9,6 +9,7 @@
 #include "password_blacklist.hpp"
 #include "password_honey.hpp"
 #include "ui/ui.hpp"
+#include "file_manager/file_manager.hpp"
 
 std::string Password_Generator::generate_password() {
     std::vector<char> result;
@@ -176,6 +177,8 @@ void Password_Generator::display_password(const std::string& password) {
 }
 
 void Password_Generator::generate_passwords(int num_passwords) {
+    generated_passwords_.clear();
+    
     for (int i = 1; i <= num_passwords; i++){
         std::string password;
         try {
@@ -194,6 +197,7 @@ void Password_Generator::generate_passwords(int num_passwords) {
         }
 
         display_password(password);
+        generated_passwords_.push_back(password);
     }
 
     UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
@@ -204,7 +208,27 @@ void Password_Generator::generate_passwords(int num_passwords) {
 
 void Password_Generator::initialize() {
     blacklist_ = std::make_shared<std::unordered_set<std::string>>();
-    *blacklist_.get() = parse_blacklist(settings_.get()->blacklist);
+    
+    // Load blacklist from string or file
+    if (!settings_.get()->blacklist.empty()) {
+        *blacklist_.get() = parse_blacklist(settings_.get()->blacklist);
+    }
+    
+    // Load blacklist from file if specified
+    if (!settings_.get()->blacklist_file.empty()) {
+        std::string blacklist_content = file_manager_->load_blacklist(settings_.get()->blacklist_file);
+        if (!blacklist_content.empty()) {
+            // Parse the file content as if it were in the same format as the string blacklist
+            // For file-based blacklist, we assume one password per line
+            std::stringstream ss(blacklist_content);
+            std::string entry;
+            while (std::getline(ss, entry)) {
+                if (!entry.empty()) {
+                    blacklist_.get()->emplace(entry);
+                }
+            }
+        }
+    }
 
     // Initialize the RNG with settings and optional seed
     if (settings_.get()->seed.has_value()) {
@@ -218,4 +242,18 @@ void Password_Generator::initialize() {
     
     // Generate the specified number of passwords
     generate_passwords(settings_.get()->num_passwords);
+    
+    // Save passwords to file if specified
+    if (!settings_.get()->save_file.empty()) {
+        save_passwords_to_file();
+    }
+}
+
+void Password_Generator::save_passwords_to_file() {
+    bool success = file_manager_->save_passwords(settings_.get()->save_file, generated_passwords_);
+    if (success) {
+        UI::print_with_color("Passwords saved to " + settings_.get()->save_file + " successfully.", UI::Color::Green, settings_.get()->no_color, true);
+    } else {
+        UI::print_with_color("Failed to save passwords to " + settings_.get()->save_file + ".", UI::Color::Red, settings_.get()->no_color, true);
+    }
 }

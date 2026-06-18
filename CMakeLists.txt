@@ -29,6 +29,8 @@ set(SOURCE_FILES
     src/ui/color.cpp
     src/ui/ansi_printer.cpp
     src/ui/ui_helpers.cpp
+    src/file_manager/file_manager_fs.cpp
+    src/file_manager/file_manager_io.cpp
 )
 
 add_executable(PasswordGenerator ${SOURCE_FILES})
