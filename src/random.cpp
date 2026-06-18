@@ -14,14 +14,18 @@ std::mutex RNG::engine_mutex_;
  * @brief Randomly generate a work from a list
  */
 std::string RNG::random_word() {
-    //Replace this with a txt based list of possible works
-    static const std::vector<std::string> words = {
-        "cat", "sun", "blue", "tree", "star", "moon",
-        "happy", "cool", "water", "light", "shadow",
-        "password", "car", "secert", "word", "cheese"
-    };
-    std::uniform_int_distribution<size_t> dist(0, words.size() - 1);
-    return words[dist(engine_)];
+    try{
+        //Replace this with a txt based list of possible works
+        static const std::vector<std::string> words = {
+            "cat", "sun", "blue", "tree", "star", "moon",
+            "happy", "cool", "water", "light", "shadow",
+            "password", "car", "secert", "word", "cheese"
+        };
+        std::uniform_int_distribution<size_t> dist(0, words.size() - 1);
+        return words[dist(engine_)];
+    }catch(const std::exception& e) {
+        throw std::runtime_error("Error generating random word: " + std::string(e.what()));
+    }
 }
 
 /**
@@ -38,21 +42,25 @@ std::string RNG::build_default_pool() {
  * @return The custom character pool
  */
 std::string RNG::build_custom_pool(const std::string& chars) {
-    if (chars.empty()) {
-        return "";
-    }
-    
-    // Remove duplicates while preserving order
-    std::string unique_chars;
-    unique_chars.reserve(chars.size());
-    for (char c : chars) {
-        // Only include printable ASCII characters
-        if (c >= ' ' && c <= '~' && unique_chars.find(c) == std::string::npos) {
-            unique_chars += c;
+    try{
+        if (chars.empty()) {
+            return "";
         }
+        
+        // Remove duplicates while preserving order
+        std::string unique_chars;
+        unique_chars.reserve(chars.size());
+        for (char c : chars) {
+            // Only include printable ASCII characters
+            if (c >= ' ' && c <= '~' && unique_chars.find(c) == std::string::npos) {
+                unique_chars += c;
+            }
+        }
+        
+        return unique_chars;
+    } catch(const std::exception& e) {
+        throw std::runtime_error("Error building custom character pool: " + std::string(e.what()));
     }
-    
-    return unique_chars;
 }
 
 /**
@@ -62,16 +70,20 @@ std::string RNG::build_custom_pool(const std::string& chars) {
  * @return The pool with excluded characters removed
  */
 std::string RNG::exclude_chars_from_pool(const std::string& pool, const std::string& exclude) {
-    std::string result;
-    result.reserve(pool.size());
-    
-    for (char c : pool) {
-        if (exclude.find(c) == std::string::npos) {
-            result += c;
+    try{
+        std::string result;
+        result.reserve(pool.size());
+        
+        for (char c : pool) {
+            if (exclude.find(c) == std::string::npos) {
+                result += c;
+            }
         }
+        
+        return result;
+    }catch(const std::exception& e) {
+        throw std::runtime_error("Error excluding characters from pool: " + std::string(e.what()));
     }
-    
-    return result;
 }
 
 /**
@@ -81,20 +93,24 @@ std::string RNG::exclude_chars_from_pool(const std::string& pool, const std::str
  * @return The pool with ambiguous characters removed if requested
  */
 std::string RNG::exclude_ambiguous_from_pool(const std::string& pool, bool exclude_ambiguous) {
-    if (!exclude_ambiguous) {
-        return pool;
-    }
-    
-    std::string result;
-    result.reserve(pool.size());
-    
-    for (char c : pool) {
-        if (settings_.get()->ambiguous_chars.find(c) == std::string::npos) {
-            result += c;
+    try{
+        if (!exclude_ambiguous) {
+            return pool;
         }
+        
+        std::string result;
+        result.reserve(pool.size());
+        
+        for (char c : pool) {
+            if (settings_.get()->ambiguous_chars.find(c) == std::string::npos) {
+                result += c;
+            }
+        }
+        
+        return result;
+    }catch(const std::exception& e) {
+        throw std::runtime_error("Error excluding ambiguous characters from pool: " + std::string(e.what()));
     }
-    
-    return result;
 }
 
 void RNG::seed(std::optional<uint64_t> seed_value){
@@ -109,18 +125,22 @@ void RNG::seed(std::optional<uint64_t> seed_value){
 }
 
 char RNG::select_char(const std::string& charset){
-    if (charset.empty()) {
-        throw std::invalid_argument("Character set is empty - cannot select character!");
+    try{
+        if (charset.empty()) {
+            throw std::invalid_argument("Character set is empty - cannot select character!");
+        }
+
+        size_t max_index = static_cast<size_t>(charset.size() - 1); 
+        std::uniform_int_distribution<size_t> dist(0, max_index);
+
+        size_t index = dist(engine_);
+
+        if (index >= charset.size()) {
+            throw std::runtime_error("Random number distribution out of bounds!");
+        }
+
+        return charset[index];
+    }catch(const std::exception& e) {
+        throw std::runtime_error("Error selecting character: " + std::string(e.what()));
     }
-
-    size_t max_index = static_cast<size_t>(charset.size() - 1); 
-    std::uniform_int_distribution<size_t> dist(0, max_index);
-
-    size_t index = dist(engine_);
-
-    if (index >= charset.size()) {
-        throw std::runtime_error("Random number distribution out of bounds!");
-    }
-
-    return charset[index];
 }
