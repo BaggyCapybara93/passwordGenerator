@@ -23,18 +23,6 @@ class RNG{
         RNG(std::shared_ptr<Settings> settings) : settings_(std::move(settings)) {}
         void seed(std::optional<uint64_t> seedValue);
 
-        std::string generate(
-            size_t length,
-            bool requires_uppercase = true,
-            bool requires_lowercase = true,
-            bool requires_digits = true,
-            bool requires_special = true,
-            const std::string& custom_chars = "",
-            const std::string& exclude_chars = "",
-            const std::set<std::string>& blacklist = std::set<std::string>(),
-            bool exclude_ambiguous = false
-        );
-
         std::string random_word();
 
         char select_char(const std::string& charset);
