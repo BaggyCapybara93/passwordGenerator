@@ -1,10 +1,5 @@
 #include "password_blacklist.hpp"
 
-/**
-         * @brief Parse the blacklist 
-         * @param blacklist_str The string of the blacklist
-         * @return Unordered set of blacklisted strings
- */
 std::unordered_set<std::string> parse_blacklist(const std::string& blacklist_str) {
     try{
         std::unordered_set<std::string> blacklist;

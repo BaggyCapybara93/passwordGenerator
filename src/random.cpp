@@ -10,9 +10,6 @@ std::mt19937_64 RNG::engine_;
 std::random_device RNG::device_;
 std::mutex RNG::engine_mutex_;
 
-/**
- * @brief Randomly generate a work from a list
- */
 std::string RNG::random_word() {
     try{
         //Replace this with a txt based list of possible works
@@ -28,19 +25,10 @@ std::string RNG::random_word() {
     }
 }
 
-/**
- * @brief Build the default character pool (uppercase + lowercase + digits + special)
- * @return The default 92-character pool
- */
 std::string RNG::build_default_pool() {
     return settings_.get()->uppercase_string + settings_.get()->lowercase_string + settings_.get()->digits_string + settings_.get()->special_string;
 }
 
-/**
- * @brief Build a custom character pool from provided characters
- * @param chars The custom character string
- * @return The custom character pool
- */
 std::string RNG::build_custom_pool(const std::string& chars) {
     try{
         if (chars.empty()) {
@@ -63,12 +51,6 @@ std::string RNG::build_custom_pool(const std::string& chars) {
     }
 }
 
-/**
- * @brief Exclude specified characters from a pool
- * @param pool The original character pool
- * @param exclude Characters to remove
- * @return The pool with excluded characters removed
- */
 std::string RNG::exclude_chars_from_pool(const std::string& pool, const std::string& exclude) {
     try{
         std::string result;
@@ -86,12 +68,6 @@ std::string RNG::exclude_chars_from_pool(const std::string& pool, const std::str
     }
 }
 
-/**
- * @brief Exclude ambiguous characters from a pool
- * @param pool The original character pool
- * @param exclude_ambiguous Whether to exclude ambiguous characters
- * @return The pool with ambiguous characters removed if requested
- */
 std::string RNG::exclude_ambiguous_from_pool(const std::string& pool, bool exclude_ambiguous) {
     try{
         if (!exclude_ambiguous) {
