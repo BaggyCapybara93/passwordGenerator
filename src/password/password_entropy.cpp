@@ -5,35 +5,31 @@ double calculate_entropy(const std::string& password, std::shared_ptr<Settings> 
     if (password.empty()) {
         return 0.0;
     }
-    
-    // Pool sizes for each character type
-    const size_t uppercase_size = settings.get()->uppercase_string.size();
-    const size_t lowercase_size = settings.get()->lowercase_string.size();
-    const size_t digits_size = settings.get()->digits_string.size();
-    const size_t special_size = settings.get()->special_string.size();
-    
-    // Calculate entropy: sum of log2(pool_size) for each character
-    double entropy = 0.0;
-    for (size_t i = 0; i < password.size(); ++i) {
-        char c = password[i];
-        double pool_size = 0.0;
-        
-        if (c >= 'A' && c <= 'Z') {
-            pool_size = static_cast<double>(uppercase_size);
-        } else if (c >= 'a' && c <= 'z') {
-            pool_size = static_cast<double>(lowercase_size);
-        } else if (c >= '0' && c <= '9') {
-            pool_size = static_cast<double>(digits_size);
-        } else if (c >= '!' && c <= '~') {  // Special chars are in ASCII range 33-126
-            pool_size = static_cast<double>(special_size);
-        }
-        
-        if (pool_size > 0) {
-            entropy += std::log2(pool_size);
+
+    bool has_upper = false;
+    bool has_lower = false;
+    bool has_digit = false;
+    bool has_special = false;
+
+    for (char c : password) {
+        if (std::isupper(static_cast<unsigned char>(c))) {
+            has_upper = true;
+        } else if (std::islower(static_cast<unsigned char>(c))) {
+            has_lower = true;
+        } else if (std::isdigit(static_cast<unsigned char>(c))) {
+            has_digit = true;
+        } else {
+            has_special = true;
         }
     }
-    
-    return entropy;
+
+    size_t pool_size = 0;
+    if (has_upper)  pool_size += settings->uppercase_string.size();
+    if (has_lower)  pool_size += settings->lowercase_string.size();
+    if (has_digit)  pool_size += settings->digits_string.size();
+    if (has_special) pool_size += settings->special_string.size();
+
+    return password.size() * std::log2(static_cast<double>(pool_size));
 }
 
 std::string calculate_security_score(const double& entropy, std::shared_ptr<Settings> settings) {
