@@ -34,17 +34,24 @@ double calculate_entropy(const std::string& password, std::shared_ptr<Settings> 
 
 std::string calculate_security_score(const double& entropy, std::shared_ptr<Settings> settings) {
     try{
-        long double total_possibilities = powl(2.0L, entropy);
-        long double expected_guesses = total_possibilities / 2.0L;
-        long double seconds = expected_guesses / settings.get()->guesses_per_second;
+        // expected guesses = 2^(entropy - 1)
+        long double log2_expected_guesses = entropy - 1.0L;
 
-        if (seconds < 60)
+        long double log2_seconds = log2_expected_guesses - std::log2(settings->guesses_per_second);
+
+        // Convert thresholds to log2 space
+        const long double log2_minute = std::log2(60.0L);
+        const long double log2_hour   = std::log2(3600.0L);
+        const long double log2_month  = std::log2(2629800.0L);
+        const long double log2_century = std::log2(3.15576e9L);
+
+        if (log2_seconds < log2_minute)
             return "Very Weak";
-        else if (seconds < 3600)
+        else if (log2_seconds < log2_hour)
             return "Weak";
-        else if (seconds < 2629800) // ~1 month
+        else if (log2_seconds < log2_month)
             return "Moderate";
-        else if (seconds < 3.15576e9) // ~100 years
+        else if (log2_seconds < log2_century)
             return "Strong";
         else
             return "Very Strong";
