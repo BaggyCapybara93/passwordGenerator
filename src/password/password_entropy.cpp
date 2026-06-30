@@ -29,7 +29,7 @@ double calculate_entropy(const std::string& password, std::shared_ptr<Settings> 
     if (has_digit)  pool_size += settings->digits_string.size();
     if (has_special) pool_size += settings->special_string.size();
 
-    return password.size() * std::log2(static_cast<double>(pool_size));
+    return static_cast<double>(password.size()) * std::log2(static_cast<double>(pool_size));
 }
 
 std::string calculate_security_score(const double& entropy, std::shared_ptr<Settings> settings) {
