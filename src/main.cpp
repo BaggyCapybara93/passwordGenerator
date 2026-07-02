@@ -1,6 +1,6 @@
 #include "random.hpp"
 #include "ui/ui.hpp"
-#include "parse_arguments.hpp"
+#include "parser/parse_arguments.hpp"
 #include "settings.hpp"
 #include "password/password.hpp"
 #include <iostream>
@@ -12,8 +12,9 @@ int main(int argc, char* arg[]){
     std::string program_name = arg[0];
     
     Settings settings;
+    ParseArguments parser;
 
-    if (!parse_arguments::parse_args(argc, arg, settings)) {
+    if (!parser.parse_args(argc, arg, settings)) {
         return 0; // Exit if argument parsing failed or help was requested 
     }
 

@@ -20,7 +20,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")
 
 set(SOURCE_FILES
     src/random.cpp
-    src/parse_arguments.cpp
+    src/parser/parse_arguments.cpp
     src/main.cpp
     src/password/password_generator.cpp
     src/password/password_entropy.cpp
