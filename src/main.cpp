@@ -8,8 +8,6 @@
 
 
 int main(int argc, char* arg[]){
-    // Set program name for help output
-    std::string program_name = arg[0];
     
     Settings settings;
     ParseArguments parser;
