@@ -60,10 +60,11 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
         }
 
         // Validate blacklist format
-        if (!settings.blacklist.empty() && (settings.blacklist.empty() || settings.blacklist.front() != '{' || settings.blacklist.back() != '}')) {
+        if (vm.count("blacklist") && (settings.blacklist.front() != '{' || settings.blacklist.back() != '}')) {
             std::cerr << "Error: Blacklist must be in format {password1,password2,password3}.\n";
             return false;
         }
+
 
         // Validate min-entropy format
         if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
