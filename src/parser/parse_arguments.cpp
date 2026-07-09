@@ -79,13 +79,6 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             return false;
         }
 
-
-        // Validate min-entropy format
-        if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
-            std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
-            return false;
-        }
-
         // Handle no-ambiguous option
         if (vm.count("no-ambiguous")) {
             settings.exclude_ambiguous = true;
@@ -130,6 +123,63 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
         //Ensure that users cannot disable all character types
         if(!settings.req_uppercase && !settings.req_lowercase && !settings.req_digits && !settings.req_special && settings.custom_chars.empty()) {
             std::cerr << "Error: At least one character type must be enabled or a custom character pool must be provided.\n";
+            return false;
+        }
+
+        //Move into seperate function later
+        //It will be ideal to move all validation into a seperate function(s)
+        std::string final_pool;
+
+        if (settings.req_uppercase)
+            final_pool += settings.uppercase_string;
+
+        if (settings.req_lowercase)
+            final_pool += settings.lowercase_string;
+
+        if (settings.req_digits)
+            final_pool += settings.digits_string;
+
+        if (settings.req_special)
+            final_pool += settings.special_string;
+
+        // Add custom characters
+        if (!settings.custom_chars.empty())
+            final_pool += settings.custom_chars;
+
+        if (!settings.exclude_chars.empty()) {
+            final_pool.erase(
+                std::remove_if(final_pool.begin(), final_pool.end(),
+                    [&](char c){ return settings.exclude_chars.find(c) != std::string::npos; }),
+                final_pool.end()
+            );
+        }
+
+        if (settings.exclude_ambiguous) {
+            final_pool.erase(
+                std::remove_if(final_pool.begin(), final_pool.end(),
+                    [&](char c){ return settings.ambiguous_chars.find(c) != std::string::npos; }),
+                final_pool.end()
+            );
+        }
+
+        if (final_pool.empty()) {
+            std::cerr << "Error: No characters available for password generation.\n";
+            return false;
+        }
+
+
+        double max_entropy = settings.length * std::log2(final_pool.size());
+
+        // Validate min-entropy format
+        if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
+            std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
+            return false;
+        }
+        
+        if (settings.min_entropy > max_entropy) {
+            std::cerr << "Error: Requested entropy (" << settings.min_entropy
+                    << " bits) exceeds maximum possible entropy (" << max_entropy
+                    << " bits) for the selected character set.\n";
             return false;
         }
 
