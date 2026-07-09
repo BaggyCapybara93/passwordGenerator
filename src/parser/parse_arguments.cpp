@@ -54,7 +54,7 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
         }
 
         // Validate exclude characters
-        if (!settings.exclude_chars.empty() && settings.exclude_chars.length() < 1) {
+        if (vm.count("exclude-chars") && settings.exclude_chars.empty()) {
             std::cerr << "Error: Exclude characters must contain at least 1 character.\n";
             return false;
         }
