@@ -22,8 +22,15 @@ A simple C++ password generator
 | `--no-color` | Disable colored output |
 | `--num-passwords N` | Number of passwords to generate (default: 1) |
 | `--seed N` | Use deterministic seed for random generation |
+| `--custom-chars S` | Custom character pool (e.g., `"abcXYZ123!@#"`) |
+| `--exclude-chars S` | Characters to exclude from default pools (e.g., `"!@#$"`) |
+| `--no-ambiguous` | Exclude ambiguous characters (0/O, 1/l/I) |
 | `--blacklist S` | Comma-separated list of passwords to blacklist (e.g., `{pass1,pass2,pass3}`) |
+| `--blacklist-file F` | Path to blacklist file (default: blacklist.txt) |
 | `--min-entropy N` | Set minimum entropy threshold in bits (default: 0 means no minimum) |
+| `--honey-password` | Generate a weak password designed to be compromised |
+| `--guesses-per-second N` | Set brute-force guesses per second (default: 1e9) |
+| `--save-file F` | Path to save generated passwords (default: saved_passwords.txt) |
 | `--help`, `-h` | Show this help message and exit |
 
 ---
@@ -48,10 +55,22 @@ A simple C++ password generator
 ./PasswordGenerator --length 16 --exclude-chars "!@#$"
 ```
 
+### Exclude ambiguous characters
+
+```bash
+./PasswordGenerator --length 16 --no-ambiguous
+```
+
 ### Blacklist weak/common passwords
 
 ```bash
 ./PasswordGenerator --length 12 --blacklist "{weak123,default,password}"
+```
+
+### Use a blacklist file
+
+```bash
+./PasswordGenerator --length 16 --blacklist-file "blacklist.txt"
 ```
 
 ### Generate deterministic passwords for testing
@@ -64,6 +83,24 @@ A simple C++ password generator
 
 ```bash
 ./PasswordGenerator --length 24 --min-entropy 80
+```
+
+### Generate a weak honey password
+
+```bash
+./PasswordGenerator --honey-password
+```
+
+### Customize guesses per second for entropy calculations
+
+```bash
+./PasswordGenerator --length 24 --min-entropy 80 --guesses-per-second 1e8
+```
+
+### Save passwords to a file
+
+```bash
+./PasswordGenerator --length 16 --num-passwords 10 --save-file "my_passwords.txt"
 ```
 
 ---
