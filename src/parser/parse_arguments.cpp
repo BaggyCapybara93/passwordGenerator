@@ -47,6 +47,20 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             settings.no_color = true;
         }
 
+        // Handle character-type disable flags
+        if (vm.count("no-uppercase")) {
+            settings.req_uppercase = false;
+        }
+        if (vm.count("no-lowercase")) {
+            settings.req_lowercase = false;
+        }
+        if (vm.count("no-digits")) {
+            settings.req_digits = false;
+        }
+        if (vm.count("no-special")) {
+            settings.req_special = false;
+        }
+
         // Validate custom characters
         if (!settings.custom_chars.empty() && settings.custom_chars.length() < 4) {
             std::cerr << "Error: Custom character pool must contain at least 4 characters.\n";
@@ -110,6 +124,12 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
 
         if (settings.guesses_per_second <= 0) {
             std::cerr << "Error: Guesses per second must be positive.\n";
+            return false;
+        }
+
+        //Ensure that users cannot disable all character types
+        if(!settings.req_uppercase && !settings.req_lowercase && !settings.req_digits && !settings.req_special && settings.custom_chars.empty()) {
+            std::cerr << "Error: At least one character type must be enabled or a custom character pool must be provided.\n";
             return false;
         }
 
