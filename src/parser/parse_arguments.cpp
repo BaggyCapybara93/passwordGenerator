@@ -48,6 +48,10 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             settings.no_color = true;
         }
 
+        if(vm.count(("honey-password"))) {
+            settings.is_honeypassword = true;
+        }
+
         // Handle character-type disable flags
         if (vm.count("no-uppercase")) {
             settings.req_uppercase = false;
