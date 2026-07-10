@@ -18,7 +18,8 @@ int main(int argc, char* arg[]){
 
     // Create and initialize the password generator
     auto settings_ptr = std::make_shared<Settings>(settings);
-    auto rng_ptr = std::make_shared<RNG>(settings_ptr);
+    auto file_manager_ptr = std::make_shared<file_manager>();
+    auto rng_ptr = std::make_shared<RNG>(settings_ptr, file_manager_ptr);
     Password_Generator password_generator(settings_ptr, rng_ptr);
     password_generator.initialize();
 

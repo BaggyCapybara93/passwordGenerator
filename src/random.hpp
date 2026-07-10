@@ -8,10 +8,13 @@
 #include <set>
 
 #include "settings.hpp"
+#include "file_manager/file_manager.hpp"
 
 class RNG{
     private:
         std::shared_ptr<Settings> settings_;
+
+        std::shared_ptr<file_manager> file_manager_;
     
     public:
 
@@ -20,7 +23,7 @@ class RNG{
         static std::random_device device_;
         static std::mutex engine_mutex_;
 
-        RNG(std::shared_ptr<Settings> settings) : settings_(std::move(settings)) {}
+        RNG(std::shared_ptr<Settings> settings, std::shared_ptr<file_manager> fm) : settings_(std::move(settings)), file_manager_(std::move(fm)) {}
         void seed(std::optional<uint64_t> seedValue);
 
         std::string random_word();

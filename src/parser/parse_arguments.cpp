@@ -21,6 +21,7 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             ("exclude-chars", po::value<std::string>(&settings.exclude_chars), "Characters to exclude from default pools (e.g., \"!@#$\")")
             ("blacklist", po::value<std::string>(&settings.blacklist), "Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")")
             ("blacklist-file", po::value<std::string>(&settings.blacklist_file), "Path to blacklist file (default: blacklist.txt)")
+            ("wordlist-file", po::value<std::string>(&settings.wordlist_file), "Path to word list file for honey passwords")
             ("min-entropy", po::value<double>(&settings.min_entropy), "Set minimum entropy threshold in bits (default: 0 means no minimum)")
             ("no-ambiguous", "Exclude ambiguous characters (0/O, 1/l/I)")
             ("honey-password", "Generate a weak password designed to be compromised")
@@ -190,6 +191,7 @@ void ParseArguments::print_help() {
     << "  --seed N                Use deterministic seed for random generation\n"
     << "  --blacklist S           Comma-separated list of passwords to blacklist (e.g., \"{pass1,pass2,pass3}\")\n"
     << "  --blacklist-file F      Path to blacklist file (default: blacklist.txt)\n"
+    << "  --wordlist-file F       Path to word list file for honey passwords\n"
     << "  --min-entropy N         Set minimum entropy threshold in bits (default: 0 means no minimum)\n"
     << "  --no-ambiguous          Exclude ambiguous characters (0/O, 1/l/I)\n"
     << "  --honey-password        Generate a weak password designed to be compromised\n"

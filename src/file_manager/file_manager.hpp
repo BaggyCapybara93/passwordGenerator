@@ -56,4 +56,11 @@ class file_manager{
              * @return The content of the file if successful, an empty string otherwise
         */
         std::string load_blacklist(const std::string& path);
+
+        /**
+             * @brief Load text file lines into a vector
+             * @param path The path to the file
+             * @return A vector of non-empty lines read from the file
+        */
+        std::vector<std::string> load_lines(const std::string& path);
 };

@@ -1,4 +1,5 @@
 #include "random.hpp"
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 #include <cctype>
@@ -11,16 +12,41 @@ std::random_device RNG::device_;
 std::mutex RNG::engine_mutex_;
 
 std::string RNG::random_word() {
-    try{
-        //Replace this with a txt based list of possible works
-        static const std::vector<std::string> words = {
+    try {
+        static const std::vector<std::string> fallback_words = {
             "cat", "sun", "blue", "tree", "star", "moon",
             "happy", "cool", "water", "light", "shadow",
-            "password", "car", "secert", "word", "cheese"
+            "password", "car", "secret", "word", "cheese"
         };
+
+        std::vector<std::string> words;
+        words.reserve(fallback_words.size());
+
+        auto trim = [&](std::string value) {
+            auto not_space = [](unsigned char ch) { return !std::isspace(ch); };
+            value.erase(value.begin(), std::find_if(value.begin(), value.end(), not_space));
+            value.erase(std::find_if(value.rbegin(), value.rend(), not_space).base(), value.end());
+            return value;
+        };
+
+        if (!settings_.get()->wordlist_file.empty()) {
+            std::vector<std::string> lines = file_manager_.get()->load_lines(settings_.get()->wordlist_file);
+            for (auto& line : lines) {
+                std::string entry = trim(line);
+                if (!entry.empty()) {
+                    words.push_back(entry);
+                }
+            }
+        }
+
+        if (words.empty()) {
+            words = fallback_words;
+        }
+
         std::uniform_int_distribution<size_t> dist(0, words.size() - 1);
+        std::lock_guard<std::mutex> lock(engine_mutex_);
         return words[dist(engine_)];
-    }catch(const std::exception& e) {
+    } catch (const std::exception& e) {
         throw std::runtime_error("Error generating random word: " + std::string(e.what()));
     }
 }

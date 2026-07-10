@@ -17,6 +17,7 @@ struct Settings {
     std::string exclude_chars = "";          // Characters to exclude from default pools
     std::string blacklist = "";              // Comma-separated list of passwords to blacklist (e.g., "{pass1,pass2,pass3}")
     std::string blacklist_file = "";         // Path to blacklist file
+    std::string wordlist_file = "";          // Path to word list file for honey passwords
     bool exclude_ambiguous = false;          // Exclude ambiguous characters (0/O, 1/l/I)
     double min_entropy = 0.0;                // Minimum entropy threshold in bits (default: 0 means no minimum)
     bool is_honeypassword = false;
@@ -32,5 +33,6 @@ struct Settings {
     
     // Default file paths
     const std::string default_blacklist_file = "blacklist.txt";
+    const std::string default_wordlist_file = "wordlist.txt";
     const std::string default_save_file = "saved_passwords.txt";
 };

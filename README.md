@@ -26,6 +26,7 @@ A simple C++ password generator
 | `--exclude-chars S` | Characters to exclude from default pools (e.g., `"!@#$"`) |
 | `--no-ambiguous` | Exclude ambiguous characters (0/O, 1/l/I) |
 | `--blacklist S` | Comma-separated list of passwords to blacklist (e.g., `{pass1,pass2,pass3}`) |
+| `--wordlist-file F` | Path to wordlist file |
 | `--blacklist-file F` | Path to blacklist file (default: blacklist.txt) |
 | `--min-entropy N` | Set minimum entropy threshold in bits (default: 0 means no minimum) |
 | `--honey-password` | Generate a weak password designed to be compromised |

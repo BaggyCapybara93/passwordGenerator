@@ -44,20 +44,35 @@ bool file_manager::save_passwords(const std::string& path, const std::vector<std
     }
 }
 
+std::vector<std::string> file_manager::load_lines(const std::string& path) {
+    try {
+        std::vector<std::string> lines;
+        std::ifstream in(path);
+        if (!file_validation(path)) return lines;
+        if (!in) return lines;
+
+        std::string line;
+        while (std::getline(in, line)) {
+            lines.push_back(line);
+        }
+
+        return lines;
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Error loading file lines: " + std::string(e.what()));
+    }
+}
+
 std::string file_manager::load_blacklist(const std::string& path) {
     try {
-        std::ifstream in(path);
-        if (!file_validation(path)) return "";
-        if (!in) return "";
-        
-        return std::string((std::istreambuf_iterator<char>(in)),
-                            std::istreambuf_iterator<char>());
-
-        if (!in) return "";
-        
-        std::string content((std::istreambuf_iterator<char>(in)),
-                            std::istreambuf_iterator<char>());
-        return content;
+        std::vector<std::string> lines = load_lines(path);
+        std::string result;
+        for (const auto& line : lines) {
+            if (!result.empty()) {
+                result += '\n';
+            }
+            result += line;
+        }
+        return result;
     } catch (const std::exception& e) {
         throw std::runtime_error("Error loading blacklist: " + std::string(e.what()));
     }
