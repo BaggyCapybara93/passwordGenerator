@@ -1,4 +1,5 @@
 #include "parse_arguments.hpp"
+#include <cmath>
 #include <stdexcept>
 #include <string>
 
@@ -61,125 +62,8 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             settings.req_special = false;
         }
 
-        // Validate custom characters
-        if (!settings.custom_chars.empty() && settings.custom_chars.length() < 4) {
-            std::cerr << "Error: Custom character pool must contain at least 4 characters.\n";
-            return false;
-        }
-
-        // Validate exclude characters
-        if (vm.count("exclude-chars") && settings.exclude_chars.empty()) {
-            std::cerr << "Error: Exclude characters must contain at least 1 character.\n";
-            return false;
-        }
-
-        // Validate blacklist format
-        if (vm.count("blacklist") && (settings.blacklist.front() != '{' || settings.blacklist.back() != '}')) {
-            std::cerr << "Error: Blacklist must be in format {password1,password2,password3}.\n";
-            return false;
-        }
-
-        // Handle no-ambiguous option
-        if (vm.count("no-ambiguous")) {
-            settings.exclude_ambiguous = true;
-        }
-
-        // Handle min-entropy option
-        if (vm.count("min-entropy")) {
-            settings.min_entropy = vm["min-entropy"].as<double>();
-        }
-
-        // Handle honey-password option
-        if (vm.count("honey-password")) {
-            settings.is_honeypassword = true;
-        }
-
-        // Handle guesses-per-second option
-        if (vm.count("guesses-per-second")) {
-            settings.guesses_per_second = vm["guesses-per-second"].as<double>();
-        }
-
         // Validate settings
-        if (settings.length < 1) {
-            std::cerr << "Error: Password length must be at least 1.\n";
-            return false;
-        }
-
-        if (settings.num_passwords < 1) {
-            std::cerr << "Error: Number of passwords must be at least 1.\n";
-            return false;
-        }
-
-        if (settings.min_entropy < 0) {
-            std::cerr << "Error: Minimum entropy must be non-negative.\n";
-            return false;
-        }
-
-        if (settings.guesses_per_second <= 0) {
-            std::cerr << "Error: Guesses per second must be positive.\n";
-            return false;
-        }
-
-        //Ensure that users cannot disable all character types
-        if(!settings.req_uppercase && !settings.req_lowercase && !settings.req_digits && !settings.req_special && settings.custom_chars.empty()) {
-            std::cerr << "Error: At least one character type must be enabled or a custom character pool must be provided.\n";
-            return false;
-        }
-
-        //Move into seperate function later
-        //It will be ideal to move all validation into a seperate function(s)
-        std::string final_pool;
-
-        if (settings.req_uppercase)
-            final_pool += settings.uppercase_string;
-
-        if (settings.req_lowercase)
-            final_pool += settings.lowercase_string;
-
-        if (settings.req_digits)
-            final_pool += settings.digits_string;
-
-        if (settings.req_special)
-            final_pool += settings.special_string;
-
-        // Add custom characters
-        if (!settings.custom_chars.empty())
-            final_pool += settings.custom_chars;
-
-        if (!settings.exclude_chars.empty()) {
-            final_pool.erase(
-                std::remove_if(final_pool.begin(), final_pool.end(),
-                    [&](char c){ return settings.exclude_chars.find(c) != std::string::npos; }),
-                final_pool.end()
-            );
-        }
-
-        if (settings.exclude_ambiguous) {
-            final_pool.erase(
-                std::remove_if(final_pool.begin(), final_pool.end(),
-                    [&](char c){ return settings.ambiguous_chars.find(c) != std::string::npos; }),
-                final_pool.end()
-            );
-        }
-
-        if (final_pool.empty()) {
-            std::cerr << "Error: No characters available for password generation.\n";
-            return false;
-        }
-
-
-        double max_entropy = settings.length * std::log2(final_pool.size());
-
-        // Validate min-entropy format
-        if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
-            std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
-            return false;
-        }
-        
-        if (settings.min_entropy > max_entropy) {
-            std::cerr << "Error: Requested entropy (" << settings.min_entropy
-                    << " bits) exceeds maximum possible entropy (" << max_entropy
-                    << " bits) for the selected character set.\n";
+        if (!validate_settings(settings)) {
             return false;
         }
 
@@ -192,6 +76,100 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
         std::cerr << "Unexpected error: " << e.what() << "\n";
         return false;
     }
+}
+
+bool ParseArguments::validate_settings(Settings& settings) {
+    // Validate custom characters
+    if (!settings.custom_chars.empty() && settings.custom_chars.length() < 4) {
+        std::cerr << "Error: Custom character pool must contain at least 4 characters.\n";
+        return false;
+    }
+
+    // Validate basic settings
+    if (settings.length < 1) {
+        std::cerr << "Error: Password length must be at least 1.\n";
+        return false;
+    }
+
+    if (settings.num_passwords < 1) {
+        std::cerr << "Error: Number of passwords must be at least 1.\n";
+        return false;
+    }
+
+    if (settings.min_entropy < 0) {
+        std::cerr << "Error: Minimum entropy must be non-negative.\n";
+        return false;
+    }
+
+    if (settings.guesses_per_second <= 0) {
+        std::cerr << "Error: Guesses per second must be positive.\n";
+        return false;
+    }
+
+    // Ensure that users cannot disable all character types
+    if(!settings.req_uppercase && !settings.req_lowercase && !settings.req_digits && !settings.req_special && settings.custom_chars.empty()) {
+        std::cerr << "Error: At least one character type must be enabled or a custom character pool must be provided.\n";
+        return false;
+    }
+
+    // Build the final character pool
+    std::string final_pool;
+
+    if (settings.req_uppercase)
+        final_pool += settings.uppercase_string;
+
+    if (settings.req_lowercase)
+        final_pool += settings.lowercase_string;
+
+    if (settings.req_digits)
+        final_pool += settings.digits_string;
+
+    if (settings.req_special)
+        final_pool += settings.special_string;
+
+    // Add custom characters
+    if (!settings.custom_chars.empty())
+        final_pool += settings.custom_chars;
+
+    // Remove excluded characters
+    if (!settings.exclude_chars.empty()) {
+        final_pool.erase(
+            std::remove_if(final_pool.begin(), final_pool.end(),
+                [&](char c){ return settings.exclude_chars.find(c) != std::string::npos; }),
+            final_pool.end()
+        );
+    }
+
+    // Remove ambiguous characters if requested
+    if (settings.exclude_ambiguous) {
+        final_pool.erase(
+            std::remove_if(final_pool.begin(), final_pool.end(),
+                [&](char c){ return settings.ambiguous_chars.find(c) != std::string::npos; }),
+            final_pool.end()
+        );
+    }
+
+    if (final_pool.empty()) {
+        std::cerr << "Error: No characters available for password generation.\n";
+        return false;
+    }
+
+    // Validate entropy constraints
+    double max_entropy = static_cast<double>(settings.length) * std::log2(static_cast<double>(final_pool.size()));
+
+    if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
+        std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
+        return false;
+    }
+    
+    if (settings.min_entropy > max_entropy) {
+        std::cerr << "Error: Requested entropy (" << settings.min_entropy
+                << " bits) exceeds maximum possible entropy (" << max_entropy
+                << " bits) for the selected character set.\n";
+        return false;
+    }
+
+    return true;
 }
 
 void ParseArguments::print_help() {

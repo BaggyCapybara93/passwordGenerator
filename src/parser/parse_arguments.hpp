@@ -23,6 +23,13 @@ class ParseArguments{
         bool parse_args(int argc, char* argv[], Settings& settings);
 
         /**
+         * @brief Validate settings and build the final character pool
+         * @param settings Reference to Settings struct to validate and modify
+         * @return true if validation succeeded, false if validation failed
+         */
+        bool validate_settings(Settings& settings);
+
+        /**
          * @brief Print usage information and exit
          */
         void print_help();
