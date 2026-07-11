@@ -10,9 +10,7 @@ bool file_manager::file_exists(const std::string& path) {
 }
 
 bool file_manager::file_validation(const std::string& path) {
-    if (!file_exists(path)) return false;
-
-    if (!std::filesystem::is_regular_file(path)) return false;
-
-    return true;
+    std::filesystem::path file_path(path);
+    return std::filesystem::exists(file_path) &&
+           std::filesystem::is_regular_file(file_path);
 }
