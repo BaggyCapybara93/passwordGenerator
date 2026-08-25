@@ -1,4 +1,5 @@
 #include "parse_arguments.hpp"
+#include "password/password_entropy.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -116,6 +117,11 @@ bool ParseArguments::validate_settings(Settings& settings) {
         return false;
     }
 
+    if (settings.is_honeypassword && settings.min_entropy > 0) {
+        std::cerr << "Error: A honey password cannot be generated with a minimum entropy requirement.\n";
+        return false;
+    }
+
     // Ensure that users cannot disable all character types
     if(!settings.req_uppercase && !settings.req_lowercase && !settings.req_digits && !settings.req_special && settings.custom_chars.empty()) {
         std::cerr << "Error: At least one character type must be enabled or a custom character pool must be provided.\n";
@@ -168,7 +174,8 @@ bool ParseArguments::validate_settings(Settings& settings) {
     }
 
     // Validate entropy constraints
-    double max_entropy = static_cast<double>(settings.length) * std::log2(static_cast<double>(final_pool.size()));
+    const std::string effective_pool = build_effective_character_pool(settings);
+    double max_entropy = static_cast<double>(settings.length) * std::log2(static_cast<double>(effective_pool.size()));
 
     if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
         std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
