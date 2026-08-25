@@ -1,4 +1,5 @@
 #include "parse_arguments.hpp"
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <string>
@@ -121,41 +122,44 @@ bool ParseArguments::validate_settings(Settings& settings) {
         return false;
     }
 
-    // Build the final character pool
+    const auto filter_pool = [&](std::string pool) {
+        pool.erase(
+            std::remove_if(pool.begin(), pool.end(), [&](char c) {
+                return settings.exclude_chars.find(c) != std::string::npos ||
+                       (settings.exclude_ambiguous && settings.ambiguous_chars.find(c) != std::string::npos);
+            }),
+            pool.end());
+        return pool;
+    };
+
+    // Build and validate each required character pool independently.
     std::string final_pool;
+    if (!settings.custom_chars.empty()) {
+        final_pool = filter_pool(settings.custom_chars);
+    } else {
+        const std::string uppercase_pool = filter_pool(settings.uppercase_string);
+        const std::string lowercase_pool = filter_pool(settings.lowercase_string);
+        const std::string digits_pool = filter_pool(settings.digits_string);
+        const std::string special_pool = filter_pool(settings.special_string);
 
-    if (settings.req_uppercase)
-        final_pool += settings.uppercase_string;
+        const auto add_required_pool = [&](bool required, const std::string& pool, const char* name) {
+            if (!required) {
+                return true;
+            }
+            if (pool.empty()) {
+                std::cerr << "Error: Character exclusions removed every " << name << " character.\n";
+                return false;
+            }
+            final_pool += pool;
+            return true;
+        };
 
-    if (settings.req_lowercase)
-        final_pool += settings.lowercase_string;
-
-    if (settings.req_digits)
-        final_pool += settings.digits_string;
-
-    if (settings.req_special)
-        final_pool += settings.special_string;
-
-    // Add custom characters
-    if (!settings.custom_chars.empty())
-        final_pool += settings.custom_chars;
-
-    // Remove excluded characters
-    if (!settings.exclude_chars.empty()) {
-        final_pool.erase(
-            std::remove_if(final_pool.begin(), final_pool.end(),
-                [&](char c){ return settings.exclude_chars.find(c) != std::string::npos; }),
-            final_pool.end()
-        );
-    }
-
-    // Remove ambiguous characters if requested
-    if (settings.exclude_ambiguous) {
-        final_pool.erase(
-            std::remove_if(final_pool.begin(), final_pool.end(),
-                [&](char c){ return settings.ambiguous_chars.find(c) != std::string::npos; }),
-            final_pool.end()
-        );
+        if (!add_required_pool(settings.req_uppercase, uppercase_pool, "uppercase") ||
+            !add_required_pool(settings.req_lowercase, lowercase_pool, "lowercase") ||
+            !add_required_pool(settings.req_digits, digits_pool, "digit") ||
+            !add_required_pool(settings.req_special, special_pool, "special")) {
+            return false;
+        }
     }
 
     if (final_pool.empty()) {

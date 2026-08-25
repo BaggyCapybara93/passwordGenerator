@@ -21,6 +21,8 @@ std::string Password_Generator::generate_password() {
         if (!settings_.get()->custom_chars.empty()) {
             // Use custom character pool
             std::string custom_pool = rng_.get()->build_custom_pool(settings_.get()->custom_chars);
+            custom_pool = rng_.get()->exclude_chars_from_pool(custom_pool, settings_.get()->exclude_chars);
+            custom_pool = rng_.get()->exclude_ambiguous_from_pool(custom_pool, settings_.get()->exclude_ambiguous);
             
             // Distribute custom characters to pools based on requirements
             if (settings_.get()->req_uppercase) {
@@ -36,35 +38,15 @@ std::string Password_Generator::generate_password() {
                 sp_pool = custom_pool;
             }
         } else {
-            // Use default pools, optionally excluding characters
-            if (!settings_.get()->exclude_chars.empty()) {
-                std::string default_pool = rng_.get()->build_default_pool();
-                std::string excluded_pool = rng_.get()->exclude_chars_from_pool(default_pool, settings_.get()->exclude_chars);
-                
-                // Apply ambiguous character exclusion if requested
-                if (settings_.get()->exclude_ambiguous) {
-                    excluded_pool = rng_.get()->exclude_ambiguous_from_pool(excluded_pool, settings_.get()->exclude_ambiguous);
-                }
-                
-                if (settings_.get()->req_uppercase) up_pool = excluded_pool;
-                if (settings_.get()->req_lowercase) low_pool = excluded_pool;
-                if (settings_.get()->req_digits) dig_pool = excluded_pool;
-                if (settings_.get()->req_special) sp_pool = excluded_pool;
-            } else {
-                // Use default pools as-is
-                if (settings_.get()->req_uppercase) up_pool = settings_.get()->uppercase_string;
-                if (settings_.get()->req_lowercase) low_pool = settings_.get()->lowercase_string;
-                if (settings_.get()->req_digits) dig_pool = settings_.get()->digits_string;
-                if (settings_.get()->req_special) sp_pool = settings_.get()->special_string;
-                
-                // Apply ambiguous character exclusion to default pools if requested
-                if (settings_.get()->exclude_ambiguous) {
-                    if (settings_.get()->req_uppercase) up_pool = rng_.get()->exclude_ambiguous_from_pool(up_pool, settings_.get()->exclude_ambiguous);
-                    if (settings_.get()->req_lowercase) low_pool = rng_.get()->exclude_ambiguous_from_pool(low_pool, settings_.get()->exclude_ambiguous);
-                    if (settings_.get()->req_digits) dig_pool = rng_.get()->exclude_ambiguous_from_pool(dig_pool, settings_.get()->exclude_ambiguous);
-                    if (settings_.get()->req_special) sp_pool = rng_.get()->exclude_ambiguous_from_pool(sp_pool, settings_.get()->exclude_ambiguous);
-                }
-            }
+            const auto filtered_pool = [&](const std::string& pool) {
+                std::string result = rng_.get()->exclude_chars_from_pool(pool, settings_.get()->exclude_chars);
+                return rng_.get()->exclude_ambiguous_from_pool(result, settings_.get()->exclude_ambiguous);
+            };
+
+            if (settings_.get()->req_uppercase) up_pool = filtered_pool(settings_.get()->uppercase_string);
+            if (settings_.get()->req_lowercase) low_pool = filtered_pool(settings_.get()->lowercase_string);
+            if (settings_.get()->req_digits) dig_pool = filtered_pool(settings_.get()->digits_string);
+            if (settings_.get()->req_special) sp_pool = filtered_pool(settings_.get()->special_string);
         }
 
         auto ensure_char = [&](const std::string& s, bool req) {
