@@ -47,3 +47,7 @@ target_include_directories(PasswordGenerator PRIVATE
 )
 
 target_link_libraries(PasswordGenerator PRIVATE Boost::program_options)
+
+if(WIN32)
+    target_link_libraries(PasswordGenerator PRIVATE bcrypt)
+endif()

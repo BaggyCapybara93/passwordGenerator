@@ -1,11 +1,12 @@
 #pragma once
 #include <mutex>
 #include <memory>
+#include <cstddef>
 #include <optional>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <random>
-#include <set>
 
 #include "settings.hpp"
 #include "file_manager/file_manager.hpp"
@@ -15,20 +16,30 @@ class RNG{
         std::shared_ptr<Settings> settings_;
 
         std::shared_ptr<file_manager> file_manager_;
+        std::mt19937_64 deterministic_engine_;
+        std::mutex engine_mutex_;
+        bool deterministic_mode_ = false;
+
+        uint64_t secure_random_uint64();
     
     public:
-
-        //TEMP: change this later
-        static std::mt19937_64 engine_;
-        static std::random_device device_;
-        static std::mutex engine_mutex_;
 
         RNG(std::shared_ptr<Settings> settings, std::shared_ptr<file_manager> fm) : settings_(std::move(settings)), file_manager_(std::move(fm)) {}
         void seed(std::optional<uint64_t> seedValue);
 
         std::string random_word();
 
+        /**
+         * @brief Return a uniformly distributed index in [0, upper_bound).
+         */
+        size_t random_index(size_t upper_bound);
+
         char select_char(const std::string& charset);
+
+        /**
+         * @brief Shuffle characters using the configured random backend.
+         */
+        void shuffle_chars(std::vector<char>& values);
 
         /**
          * @brief Build the default character pool (uppercase + lowercase + digits + special)

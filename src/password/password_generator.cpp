@@ -85,10 +85,7 @@ std::string Password_Generator::generate_password() {
             --remaining;
         }
 
-        {
-            std::lock_guard<std::mutex> lock(rng_.get()->engine_mutex_);
-            std::shuffle(result.begin(), result.end(), rng_.get()->engine_);
-        }
+        rng_.get()->shuffle_chars(result);
 
         std::string password = std::string(result.begin(), result.end());
         

@@ -141,6 +141,12 @@ Where `N` is the minimum entropy threshold in bits.
 
 ---
 
+## Randomness
+
+By default, generated passwords use the operating system's cryptographic random-number generator (`/dev/urandom` on Unix-like systems and `BCryptGenRandom` on Windows). The `--seed` option intentionally switches to deterministic generation for testing and should not be used for real passwords.
+
+---
+
 ## Blacklist Feature
 
 The blacklist feature allows you to block specific passwords from being generated. If a generated password matches a blacklisted password, it will be automatically regenerated until a non-blacklisted password is produced.

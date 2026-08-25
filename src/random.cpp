@@ -3,13 +3,55 @@
 #include <iostream>
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
+#include <limits>
 #include <sstream>
-#include <set>
+#include <stdexcept>
 #include <string>
 
-std::mt19937_64 RNG::engine_;
-std::random_device RNG::device_;
-std::mutex RNG::engine_mutex_;
+#ifdef _WIN32
+#include <bcrypt.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
+uint64_t RNG::secure_random_uint64() {
+    uint64_t value = 0;
+
+#ifdef _WIN32
+    const NTSTATUS status = BCryptGenRandom(
+        nullptr,
+        reinterpret_cast<PUCHAR>(&value),
+        static_cast<ULONG>(sizeof(value)),
+        BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+    if (status < 0) {
+        throw std::runtime_error("The operating system random-number generator failed.");
+    }
+#else
+    const int random_fd = open("/dev/urandom", O_RDONLY);
+    if (random_fd < 0) {
+        throw std::runtime_error("Unable to open the operating system random-number generator.");
+    }
+
+    size_t bytes_read = 0;
+    while (bytes_read < sizeof(value)) {
+        const ssize_t count = read(
+            random_fd,
+            reinterpret_cast<char*>(&value) + bytes_read,
+            sizeof(value) - bytes_read);
+        if (count <= 0) {
+            close(random_fd);
+            throw std::runtime_error("Unable to read from the operating system random-number generator.");
+        }
+        bytes_read += static_cast<size_t>(count);
+    }
+
+    close(random_fd);
+#endif
+
+    return value;
+}
 
 std::string RNG::random_word() {
     try {
@@ -43,9 +85,7 @@ std::string RNG::random_word() {
             words = fallback_words;
         }
 
-        std::uniform_int_distribution<size_t> dist(0, words.size() - 1);
-        std::lock_guard<std::mutex> lock(engine_mutex_);
-        return words[dist(engine_)];
+        return words[random_index(words.size())];
     } catch (const std::exception& e) {
         throw std::runtime_error("Error generating random word: " + std::string(e.what()));
     }
@@ -119,11 +159,33 @@ void RNG::seed(std::optional<uint64_t> seed_value){
     std::lock_guard<std::mutex> lock(engine_mutex_);
 
     if (seed_value.has_value()) {
-        uint64_t specific_seed = seed_value.value();
-        engine_.seed(specific_seed);
+        deterministic_engine_.seed(seed_value.value());
+        deterministic_mode_ = true;
     } else {
-        engine_.seed(device_());
+        deterministic_mode_ = false;
     }
+}
+
+size_t RNG::random_index(size_t upper_bound) {
+    if (upper_bound == 0) {
+        throw std::invalid_argument("Upper bound must be greater than zero.");
+    }
+
+    std::lock_guard<std::mutex> lock(engine_mutex_);
+    if (deterministic_mode_) {
+        std::uniform_int_distribution<size_t> distribution(0, upper_bound - 1);
+        return distribution(deterministic_engine_);
+    }
+
+    const uint64_t bound = static_cast<uint64_t>(upper_bound);
+    const uint64_t limit = std::numeric_limits<uint64_t>::max() -
+                           (std::numeric_limits<uint64_t>::max() % bound);
+    uint64_t value = 0;
+    do {
+        value = secure_random_uint64();
+    } while (value >= limit);
+
+    return static_cast<size_t>(value % bound);
 }
 
 char RNG::select_char(const std::string& charset){
@@ -132,17 +194,16 @@ char RNG::select_char(const std::string& charset){
             throw std::invalid_argument("Character set is empty - cannot select character!");
         }
 
-        size_t max_index = static_cast<size_t>(charset.size() - 1); 
-        std::uniform_int_distribution<size_t> dist(0, max_index);
-
-        size_t index = dist(engine_);
-
-        if (index >= charset.size()) {
-            throw std::runtime_error("Random number distribution out of bounds!");
-        }
+        const size_t index = random_index(charset.size());
 
         return charset[index];
     }catch(const std::exception& e) {
         throw std::runtime_error("Error selecting character: " + std::string(e.what()));
+    }
+}
+
+void RNG::shuffle_chars(std::vector<char>& values) {
+    for (size_t i = values.size(); i > 1; --i) {
+        std::swap(values[i - 1], values[random_index(i)]);
     }
 }

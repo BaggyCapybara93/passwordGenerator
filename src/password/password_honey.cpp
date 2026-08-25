@@ -14,14 +14,12 @@ std::string generate_honey_password(std::shared_ptr<RNG> rng, std::shared_ptr<Se
         }
 
         // Choose a weak pattern - still random but with more predictable suffixes
-        std::uniform_int_distribution<int> pattern_dist(0, 4);
-        int pattern = pattern_dist(rng->engine_);
+        const size_t pattern = rng->random_index(5);
 
         switch (pattern) {
             case 0: {
                 // word + 1 random digit (0–9)
-                std::uniform_int_distribution<int> d(0, 9);
-                pwd += std::to_string(d(rng->engine_));
+                pwd += std::to_string(rng->random_index(10));
                 break;
             }
             case 1: {
@@ -29,29 +27,24 @@ std::string generate_honey_password(std::shared_ptr<RNG> rng, std::shared_ptr<Se
                 static const std::vector<std::string> suffixes = {
                     "123", "111", "abc", "aaa", "000"
                 };
-                std::uniform_int_distribution<int> s(0, static_cast<int>(suffixes.size() - 1));
-                pwd += suffixes[static_cast<size_t>(s(rng->engine_))];
+                pwd += suffixes[rng->random_index(suffixes.size())];
                 break;
             }
             case 2: {
                 // word + repeated letter (aaa, bbb, ccc...)
-                std::uniform_int_distribution<int> l(0, 25);
-                char letter = 'a' + static_cast<char>(l(rng->engine_));
+                const char letter = static_cast<char>('a' + rng->random_index(26));
                 pwd += std::string(3, letter);
                 break;
             }
             case 3: {
                 // word + low‑entropy number (0–19)
-                std::uniform_int_distribution<int> n(0, 19);
-                pwd += std::to_string(n(rng->engine_));
+                pwd += std::to_string(rng->random_index(20));
                 break;
             }
             case 4: {
                 // word + fixed pattern: letter + digit
-                std::uniform_int_distribution<int> l(0, 25);
-                std::uniform_int_distribution<int> d(0, 9);
-                pwd += static_cast<char>('a' + l(rng->engine_));
-                pwd += static_cast<char>('0' + d(rng->engine_));
+                pwd += static_cast<char>('a' + rng->random_index(26));
+                pwd += static_cast<char>('0' + rng->random_index(10));
                 break;
             }
         }
