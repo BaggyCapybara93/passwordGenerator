@@ -17,6 +17,7 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             ("no-digits", "Disable digit requirement")
             ("no-special", "Disable special character requirement")
             ("no-color", "Disable colored output")
+            ("quiet", "Print only generated passwords to standard output")
             ("num-passwords", po::value<int>(&settings.num_passwords),"Number of passwords to generate (default: 1)")
             ("seed", po::value<uint64_t>(), "Use deterministic seed for random number generation")
             ("custom-chars", po::value<std::string>(&settings.custom_chars), "Custom character pool (e.g., \"abcXYZ123!@#\")")
@@ -49,6 +50,10 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
         // Handle no-color option
         if (vm.count("no-color")) {
             settings.no_color = true;
+        }
+
+        if (vm.count("quiet")) {
+            settings.quiet = true;
         }
 
         if (vm.count("no-ambiguous")) {
@@ -151,6 +156,7 @@ void ParseArguments::print_help() {
     << "  --no-lowercase          Disable lowercase requirement\n"
     << "  --no-digits             Disable digit requirement\n"
     << "  --no-color              Disable colored output\n"
+    << "  --quiet                 Print only generated passwords to standard output\n"
     << "  --no-special            Disable special character requirement\n"
     << "  --num-passwords N       Number of passwords to generate (default: 1)\n"
     << "  --seed N                Use deterministic seed for random generation\n"

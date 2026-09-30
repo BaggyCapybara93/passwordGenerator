@@ -20,6 +20,7 @@ A simple C++ password generator
 | `--no-digits` | Disable digit requirement |
 | `--no-special` | Disable special character requirement |
 | `--no-color` | Disable colored output |
+| `--quiet` | Print only generated passwords to standard output |
 | `--num-passwords N` | Number of passwords to generate (default: 1) |
 | `--seed N` | Use deterministic seed for random generation |
 | `--custom-chars S` | Custom character pool (e.g., `"abcXYZ123!@#"`) |
@@ -103,6 +104,14 @@ A simple C++ password generator
 ```bash
 ./PasswordGenerator --length 16 --num-passwords 10 --save-file "my_passwords.txt"
 ```
+
+### Pipe passwords into another command
+
+```bash
+./PasswordGenerator --quiet --num-passwords 5 | tee passwords.txt
+```
+
+In quiet mode, stdout contains one password per line. Errors are written to stderr.
 
 ---
 

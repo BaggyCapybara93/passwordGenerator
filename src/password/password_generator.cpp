@@ -30,13 +30,19 @@ std::string Password_Generator::generate_password() {
         }
         throw std::runtime_error("Could not sample a valid password after 1,000,000 attempts. The required character groups may be too rare in the selected pool.");
     }catch(const std::exception& e) {
-        std::cout << "Error generating password: " << e.what() << std::endl;
+        if (!settings_->quiet) {
+            std::cout << "Error generating password: " << e.what() << std::endl;
+        }
         throw;
     }
 }
 
 void Password_Generator::display_password(const std::string& password) {
     try{
+        if (settings_->quiet) {
+            std::cout << password << '\n';
+            return;
+        }
         const std::string security_rating = calculate_security_score(search_space_entropy_, *settings_);
 
         if (settings_.get()->is_honeypassword) {
@@ -61,7 +67,9 @@ void Password_Generator::display_password(const std::string& password) {
                 UI::print_with_color("Security Rating: " + security_rating, UI::Color::Yellow, settings_.get()->no_color, true);
         }
     }catch(const std::exception& e) {
-        UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
+        if (!settings_->quiet) {
+            UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
+        }
         throw;
     }
 }
@@ -77,9 +85,11 @@ void Password_Generator::generate_passwords(int num_passwords) {
                     ? generate_honey_password(rng_, settings_)
                     : generate_password();
             } catch (const std::invalid_argument& e) {
+                if (settings_->quiet) throw;
                 UI::print_with_color("Error generating password: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
                 return;
             } catch (const std::exception& e) {
+                if (settings_->quiet) throw;
                 UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
                 return;
             }
@@ -88,12 +98,14 @@ void Password_Generator::generate_passwords(int num_passwords) {
             generated_passwords_.push_back(password);
         }
 
-        UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
+        if (!settings_->quiet) {
+            UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
 
-        // Reset terminal colors
-        UI::reset_color(settings_.get()->no_color);
+            // Reset terminal colors
+            UI::reset_color(settings_.get()->no_color);
+        }
     }catch(const std::exception& e) {
-        UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
+        if (!settings_->quiet) UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
         throw;
     }
 }
@@ -141,7 +153,9 @@ void Password_Generator::initialize() {
             rng_.get()->seed(std::nullopt);
         }
         
-        UI::print_with_color("Password Generator initialized.", UI::Color::Green, settings_.get()->no_color, true);
+        if (!settings_->quiet) {
+            UI::print_with_color("Password Generator initialized.", UI::Color::Green, settings_.get()->no_color, true);
+        }
         
         // Generate the specified number of passwords
         generate_passwords(settings_.get()->num_passwords);
@@ -151,7 +165,11 @@ void Password_Generator::initialize() {
             save_passwords_to_file();
         }
     }catch(const std::exception& e) {
-        UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
+        if (settings_->quiet) {
+            std::cerr << "Error: " << e.what() << '\n';
+        } else {
+            UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
+        }
         throw;
     }
 }
@@ -159,13 +177,17 @@ void Password_Generator::initialize() {
 void Password_Generator::save_passwords_to_file() {
     try{
         bool success = file_manager_->save_passwords(settings_.get()->save_file, generated_passwords_);
+        if (settings_->quiet) {
+            if (!success) throw std::runtime_error("Failed to save passwords to " + settings_->save_file + ".");
+            return;
+        }
         if (success) {
             UI::print_with_color("Passwords saved to " + settings_.get()->save_file + " successfully.", UI::Color::Green, settings_.get()->no_color, true);
         } else {
             UI::print_with_color("Failed to save passwords to " + settings_.get()->save_file + ".", UI::Color::Red, settings_.get()->no_color, true);
         }
     } catch(const std::exception& e) {
-        UI::print_with_color("An unexpected error occurred while saving passwords: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
+        if (!settings_->quiet) UI::print_with_color("An unexpected error occurred while saving passwords: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
         throw;
     }
 }

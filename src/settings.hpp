@@ -13,6 +13,7 @@ struct Settings {
     bool req_digits = true;
     bool req_special = true;
     bool no_color = false;
+    bool quiet = false;                    // Print only generated passwords to stdout
     std::string custom_chars = "";           // Custom character pool
     std::string exclude_chars = "";          // Characters to exclude from default pools
     std::string blacklist = "";              // Comma-separated list of passwords to blacklist (e.g., "{pass1,pass2,pass3}")
