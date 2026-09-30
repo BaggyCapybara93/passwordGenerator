@@ -136,14 +136,6 @@ bool ParseArguments::validate_settings(Settings& settings) {
         return false;
     }
     
-    const double available_entropy = calculate_generation_entropy(settings);
-    if (settings.min_entropy > available_entropy) {
-        std::cerr << "Error: Requested entropy (" << settings.min_entropy
-                << " bits) exceeds the available entropy (" << available_entropy
-                << " bits) for the selected settings.\n";
-        return false;
-    }
-
     return true;
 }
 
