@@ -108,13 +108,13 @@ A simple C++ password generator
 
 ## Minimum Entropy Feature
 
-The minimum entropy feature ensures that generated passwords meet a specified entropy threshold. If a generated password's entropy is below the minimum threshold, it will be automatically regenerated until it meets the requirement.
+The minimum entropy feature checks the number of valid passwords available under the selected settings before generation. Passwords are sampled uniformly from that valid set, and generation stops with an error if the available set is below the requested threshold.
 
 ### What is Entropy?
 
-Entropy measures the unpredictability or randomness of a password. Higher entropy means more secure passwords. Entropy is calculated in bits and depends on:
-- The size of the character pool used
-- The length of the password
+The reported search-space entropy is `log2(number of valid passwords)`. It accounts for password length, the filtered character pool, enabled character requirements, and blacklisted passwords. It describes the generator's output space; it does not estimate the strength of a password chosen by a person or model real-world attack conditions. To keep generation bounded, the program reports an error if it cannot find an allowed password within one million attempts.
+
+Honey passwords are intentionally weak, so the program labels them as such and does not display a character-pool entropy estimate.
 
 ### Usage
 
@@ -122,7 +122,7 @@ Entropy measures the unpredictability or randomness of a password. Higher entrop
 ./PasswordGenerator --min-entropy N
 ```
 
-Where `N` is the minimum entropy threshold in bits.
+Where `N` is the minimum search-space entropy threshold in bits.
 
 ### Examples
 
@@ -149,7 +149,9 @@ By default, generated passwords use the operating system's cryptographic random-
 
 ## Blacklist Feature
 
-The blacklist feature allows you to block specific passwords from being generated. If a generated password matches a blacklisted password, it will be automatically regenerated until a non-blacklisted password is produced.
+The blacklist feature removes specific passwords from the output space. Generation continues until it samples a password that is not blacklisted.
+
+For `--custom-chars`, the provided characters form the allowed pool. Enabled uppercase, lowercase, digit, and special requirements mean the output must contain at least one character from each corresponding group. Special characters are printable ASCII punctuation.
 
 ### Format
 

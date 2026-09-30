@@ -90,12 +90,6 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
 }
 
 bool ParseArguments::validate_settings(Settings& settings) {
-    // Validate custom characters
-    if (!settings.custom_chars.empty() && settings.custom_chars.length() < 4) {
-        std::cerr << "Error: Custom character pool must contain at least 4 characters.\n";
-        return false;
-    }
-
     // Validate basic settings
     if (settings.length < 1) {
         std::cerr << "Error: Password length must be at least 1.\n";
@@ -107,12 +101,12 @@ bool ParseArguments::validate_settings(Settings& settings) {
         return false;
     }
 
-    if (settings.min_entropy < 0) {
+    if (!std::isfinite(settings.min_entropy) || settings.min_entropy < 0) {
         std::cerr << "Error: Minimum entropy must be non-negative.\n";
         return false;
     }
 
-    if (settings.guesses_per_second <= 0) {
+    if (!std::isfinite(settings.guesses_per_second) || settings.guesses_per_second <= 0) {
         std::cerr << "Error: Guesses per second must be positive.\n";
         return false;
     }
@@ -122,70 +116,26 @@ bool ParseArguments::validate_settings(Settings& settings) {
         return false;
     }
 
-    // Ensure that users cannot disable all character types
-    if(!settings.req_uppercase && !settings.req_lowercase && !settings.req_digits && !settings.req_special && settings.custom_chars.empty()) {
-        std::cerr << "Error: At least one character type must be enabled or a custom character pool must be provided.\n";
-        return false;
-    }
-
-    const auto filter_pool = [&](std::string pool) {
-        pool.erase(
-            std::remove_if(pool.begin(), pool.end(), [&](char c) {
-                return settings.exclude_chars.find(c) != std::string::npos ||
-                       (settings.exclude_ambiguous && settings.ambiguous_chars.find(c) != std::string::npos);
-            }),
-            pool.end());
-        return pool;
-    };
-
-    // Build and validate each required character pool independently.
-    std::string final_pool;
-    if (!settings.custom_chars.empty()) {
-        final_pool = filter_pool(settings.custom_chars);
-    } else {
-        const std::string uppercase_pool = filter_pool(settings.uppercase_string);
-        const std::string lowercase_pool = filter_pool(settings.lowercase_string);
-        const std::string digits_pool = filter_pool(settings.digits_string);
-        const std::string special_pool = filter_pool(settings.special_string);
-
-        const auto add_required_pool = [&](bool required, const std::string& pool, const char* name) {
-            if (!required) {
-                return true;
-            }
-            if (pool.empty()) {
-                std::cerr << "Error: Character exclusions removed every " << name << " character.\n";
-                return false;
-            }
-            final_pool += pool;
-            return true;
-        };
-
-        if (!add_required_pool(settings.req_uppercase, uppercase_pool, "uppercase") ||
-            !add_required_pool(settings.req_lowercase, lowercase_pool, "lowercase") ||
-            !add_required_pool(settings.req_digits, digits_pool, "digit") ||
-            !add_required_pool(settings.req_special, special_pool, "special")) {
-            return false;
-        }
-    }
-
-    if (final_pool.empty()) {
+    const std::string effective_pool = build_effective_character_pool(settings);
+    if (effective_pool.empty()) {
         std::cerr << "Error: No characters available for password generation.\n";
         return false;
     }
-
-    // Validate entropy constraints
-    const std::string effective_pool = build_effective_character_pool(settings);
-    double max_entropy = static_cast<double>(settings.length) * std::log2(static_cast<double>(effective_pool.size()));
+    if (!has_valid_output_space(settings)) {
+        std::cerr << "Error: The selected length and character pool cannot satisfy the enabled character requirements.\n";
+        return false;
+    }
 
     if (settings.min_entropy > 0 && settings.min_entropy > 1024) {
         std::cerr << "Error: Minimum entropy must be between 0 and 1024 bits.\n";
         return false;
     }
     
-    if (settings.min_entropy > max_entropy) {
+    const double available_entropy = calculate_generation_entropy(settings);
+    if (settings.min_entropy > available_entropy) {
         std::cerr << "Error: Requested entropy (" << settings.min_entropy
-                << " bits) exceeds maximum possible entropy (" << max_entropy
-                << " bits) for the selected character set.\n";
+                << " bits) exceeds the available entropy (" << available_entropy
+                << " bits) for the selected settings.\n";
         return false;
     }
 

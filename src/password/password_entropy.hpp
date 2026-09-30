@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <unordered_set>
 #include "settings.hpp"
 
 /**
@@ -7,12 +8,16 @@
  */
 std::string build_effective_character_pool(const Settings& settings);
 
-/**
-         * @brief Calculate the entropy of a password in bits
-         * @param password The password to calculate entropy for
-         * @return Entropy in bits (higher = more secure)
-*/
-double calculate_entropy(const std::string& password, const Settings& settings);
+/** Calculate the entropy of the uniformly sampled valid output set. */
+double calculate_generation_entropy(const Settings& settings,
+                                    const std::unordered_set<std::string>& blacklist = {});
+
+/** Check whether a candidate contains every enabled character group. */
+bool password_meets_character_requirements(const std::string& password, const Settings& settings);
+
+/** Return whether settings allow at least one valid password. */
+bool has_valid_output_space(const Settings& settings,
+                            const std::unordered_set<std::string>& blacklist = {});
 
 /**
          * @brief Calculate the security score of a password

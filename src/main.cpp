@@ -5,6 +5,7 @@
 #include "password/password.hpp"
 #include <iostream>
 #include <memory>
+#include <exception>
 
 
 int main(int argc, char* arg[]){
@@ -21,7 +22,11 @@ int main(int argc, char* arg[]){
     auto file_manager_ptr = std::make_shared<file_manager>();
     auto rng_ptr = std::make_shared<RNG>(settings_ptr, file_manager_ptr);
     Password_Generator password_generator(settings_ptr, rng_ptr);
-    password_generator.initialize();
+    try {
+        password_generator.initialize();
+    } catch (const std::exception&) {
+        return 1;
+    }
 
     return 0;
 }

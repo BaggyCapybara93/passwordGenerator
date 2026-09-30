@@ -13,90 +13,22 @@
 
 std::string Password_Generator::generate_password() {
     try{
-        std::vector<char> result;
-        
-        // Determine which character pools to use
-        std::string up_pool, low_pool, dig_pool, sp_pool;
-        
-        if (!settings_.get()->custom_chars.empty()) {
-            // Use custom character pool
-            std::string custom_pool = rng_.get()->build_custom_pool(settings_.get()->custom_chars);
-            custom_pool = rng_.get()->exclude_chars_from_pool(custom_pool, settings_.get()->exclude_chars);
-            custom_pool = rng_.get()->exclude_ambiguous_from_pool(custom_pool, settings_.get()->exclude_ambiguous);
-            
-            // Distribute custom characters to pools based on requirements
-            if (settings_.get()->req_uppercase) {
-                up_pool = custom_pool;
+        const std::string pool = build_effective_character_pool(*settings_);
+        if (pool.empty()) throw std::invalid_argument("No characters available for password generation.");
+
+        // Rejection sampling preserves a uniform distribution over the valid strings.
+        constexpr size_t max_candidate_attempts = 1000000;
+        for (size_t attempt = 0; attempt < max_candidate_attempts; ++attempt) {
+            std::string password;
+            password.reserve(settings_->length);
+            for (size_t i = 0; i < settings_->length; ++i) {
+                password.push_back(rng_->select_char(pool));
             }
-            if (settings_.get()->req_lowercase) {
-                low_pool = custom_pool;
-            }
-            if (settings_.get()->req_digits) {
-                dig_pool = custom_pool;
-            }
-            if (settings_.get()->req_special) {
-                sp_pool = custom_pool;
-            }
-        } else {
-            const auto filtered_pool = [&](const std::string& pool) {
-                std::string result = rng_.get()->exclude_chars_from_pool(pool, settings_.get()->exclude_chars);
-                return rng_.get()->exclude_ambiguous_from_pool(result, settings_.get()->exclude_ambiguous);
-            };
-
-            if (settings_.get()->req_uppercase) up_pool = filtered_pool(settings_.get()->uppercase_string);
-            if (settings_.get()->req_lowercase) low_pool = filtered_pool(settings_.get()->lowercase_string);
-            if (settings_.get()->req_digits) dig_pool = filtered_pool(settings_.get()->digits_string);
-            if (settings_.get()->req_special) sp_pool = filtered_pool(settings_.get()->special_string);
+            if (!password_meets_character_requirements(password, *settings_)) continue;
+            if (blacklist_ && blacklist_->find(password) != blacklist_->end()) continue;
+            return password;
         }
-
-        auto ensure_char = [&](const std::string& s, bool req) {
-            if (req && !s.empty()) {
-                result.push_back(rng_.get()->select_char(s));
-            }
-        };
-
-        ensure_char(up_pool, settings_.get()->req_uppercase);
-        ensure_char(low_pool, settings_.get()->req_lowercase);
-        ensure_char(dig_pool, settings_.get()->req_digits);
-        ensure_char(sp_pool, settings_.get()->req_special);
-
-        size_t current_size = result.size();
-        if (settings_.get()->length < current_size) {
-            std::string msg = "Requested password length (" + std::to_string(settings_.get()->length) + 
-                            ") is too short for requirements (" + 
-                            std::to_string(current_size) + " minimum).";
-            throw std::invalid_argument(msg);
-        }
-        size_t remaining = settings_.get()->length - current_size;
-
-        // Build the combined pool for remaining characters
-        std::string all_pool = "";
-        if (settings_.get()->req_uppercase) all_pool += up_pool;
-        if (settings_.get()->req_lowercase) all_pool += low_pool;
-        if (settings_.get()->req_digits) all_pool += dig_pool;
-        if (settings_.get()->req_special) all_pool += sp_pool;
-
-        if (all_pool.empty()) {
-            throw std::invalid_argument("No character set defined to generate remaining characters!");
-        }
-
-        while(static_cast<size_t>(result.size()) < settings_.get()->length && remaining > 0){
-            result.push_back(rng_.get()->select_char(all_pool));
-            --remaining;
-        }
-
-        rng_.get()->shuffle_chars(result);
-
-        std::string password = std::string(result.begin(), result.end());
-        
-        // Check if password is in blacklist
-        if (blacklist_ && blacklist_.get()->find(password) != blacklist_.get()->end()) {
-            // Add the generated password to the blacklist, preventing repeated password being generated
-            blacklist_.get()->emplace(password);
-            return generate_password();
-        }
-
-        return password;
+        throw std::runtime_error("Could not sample a valid password after 1,000,000 attempts. The required character groups may be too rare in the selected pool.");
     }catch(const std::exception& e) {
         std::cout << "Error generating password: " << e.what() << std::endl;
         throw;
@@ -105,10 +37,8 @@ std::string Password_Generator::generate_password() {
 
 void Password_Generator::display_password(const std::string& password) {
     try{
-        const double entropy = calculate_entropy(password, *settings_);
-        const std::string security_rating = calculate_security_score(entropy, *settings_);
-        
-        // Passwords are checked against the minimum entropy threshold before display.
+        const std::string security_rating = calculate_security_score(search_space_entropy_, *settings_);
+
         if (settings_.get()->is_honeypassword) {
                 UI::print_with_color("⚠️  HONEY PASSWORD WARNING: This password is intentionally weak!", UI::Color::Red, settings_.get()->no_color, true);
                 UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
@@ -117,9 +47,7 @@ void Password_Generator::display_password(const std::string& password) {
                 
                 UI::print_with_color(password, UI::Color::Yellow, settings_.get()->no_color, true); // Yellow color for honey password
                 
-                // Display entropy and security rating
-                UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Red, settings_.get()->no_color, true);
-                UI::print_with_color("Security Rating: " + security_rating, UI::Color::Red, settings_.get()->no_color, true);
+                UI::print_with_color("Strength: Intentionally weak (entropy estimate unavailable)", UI::Color::Red, settings_.get()->no_color, true);
                 UI::print_with_color("⚠️  This password is designed to be compromised for security testing purposes.", UI::Color::Red, settings_.get()->no_color, true);
         } else {
                 UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
@@ -128,8 +56,8 @@ void Password_Generator::display_password(const std::string& password) {
                 
                 UI::print_with_color(password, UI::Color::Green, settings_.get()->no_color, true); // No newline after the password
                 
-                // Display entropy and security rating
-                UI::print_with_color("Entropy: " + std::to_string(static_cast<long long>(entropy)) + " bits", UI::Color::Yellow, settings_.get()->no_color, true);
+                // Display the size of the valid output space, independent of the sampled value.
+                UI::print_with_color("Search-space entropy: " + std::to_string(search_space_entropy_) + " bits", UI::Color::Yellow, settings_.get()->no_color, true);
                 UI::print_with_color("Security Rating: " + security_rating, UI::Color::Yellow, settings_.get()->no_color, true);
         }
     }catch(const std::exception& e) {
@@ -145,26 +73,9 @@ void Password_Generator::generate_passwords(int num_passwords) {
         for (int i = 1; i <= num_passwords; i++){
             std::string password;
             try {
-                constexpr int max_generation_attempts = 100;
-                bool meets_entropy_requirement = false;
-
-                for (int attempt = 0; attempt < max_generation_attempts; ++attempt) {
-                    if (settings_.get()->is_honeypassword) {
-                        password = generate_honey_password(rng_, settings_);
-                    } else {
-                        password = generate_password();
-                    }
-
-                    const double entropy = calculate_entropy(password, *settings_);
-                    if (entropy >= settings_.get()->min_entropy) {
-                        meets_entropy_requirement = true;
-                        break;
-                    }
-                }
-
-                if (!meets_entropy_requirement) {
-                    throw std::runtime_error("Unable to generate a password that meets the minimum entropy requirement after 100 attempts.");
-                }
+                password = settings_->is_honeypassword
+                    ? generate_honey_password(rng_, settings_)
+                    : generate_password();
             } catch (const std::invalid_argument& e) {
                 UI::print_with_color("Error generating password: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
                 return;
@@ -209,6 +120,16 @@ void Password_Generator::initialize() {
                         blacklist_.get()->emplace(entry);
                     }
                 }
+            }
+        }
+
+        if (!settings_->is_honeypassword && !has_valid_output_space(*settings_, *blacklist_)) {
+            throw std::invalid_argument("The blacklist excludes every password allowed by these settings.");
+        }
+        if (!settings_->is_honeypassword) {
+            search_space_entropy_ = calculate_generation_entropy(*settings_, *blacklist_);
+            if (search_space_entropy_ < settings_->min_entropy) {
+                throw std::invalid_argument("The available passwords do not meet the minimum entropy requirement after applying the blacklist.");
             }
         }
 

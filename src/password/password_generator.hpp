@@ -20,6 +20,7 @@ class Password_Generator{
         std::shared_ptr<std::unordered_set<std::string>> blacklist_;
         std::shared_ptr<file_manager> file_manager_;
         std::vector<std::string> generated_passwords_;
+        double search_space_entropy_ = 0.0;
 
         /**
          * @brief Generate a password
