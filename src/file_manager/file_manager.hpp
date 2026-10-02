@@ -19,13 +19,6 @@ class file_manager{
         bool file_validation(const std::string& path);
 
         /**
-             * @brief Write to a file
-             * @param path The path to the file
-             * @return True if writing likely happened, false otherwise
-        */
-        bool write_file(const std::string& path, const std::string& data);
-
-        /**
              * @brief Read a file
              * @param path The path to the file
              * @return The content of the file if successful, an empty string otherwise

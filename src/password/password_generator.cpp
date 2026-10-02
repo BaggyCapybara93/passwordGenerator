@@ -177,15 +177,13 @@ void Password_Generator::initialize() {
 void Password_Generator::save_passwords_to_file() {
     try{
         bool success = file_manager_->save_passwords(settings_.get()->save_file, generated_passwords_);
+        if (!success) {
+            throw std::runtime_error("No passwords were generated to save.");
+        }
         if (settings_->quiet) {
-            if (!success) throw std::runtime_error("Failed to save passwords to " + settings_->save_file + ".");
             return;
         }
-        if (success) {
-            UI::print_with_color("Passwords saved to " + settings_.get()->save_file + " successfully.", UI::Color::Green, settings_.get()->no_color, true);
-        } else {
-            UI::print_with_color("Failed to save passwords to " + settings_.get()->save_file + ".", UI::Color::Red, settings_.get()->no_color, true);
-        }
+        UI::print_with_color("Passwords saved to " + settings_.get()->save_file + " successfully.", UI::Color::Green, settings_.get()->no_color, true);
     } catch(const std::exception& e) {
         if (!settings_->quiet) UI::print_with_color("An unexpected error occurred while saving passwords: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
         throw;

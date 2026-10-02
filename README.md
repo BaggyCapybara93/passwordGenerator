@@ -32,7 +32,7 @@ A simple C++ password generator
 | `--min-entropy N` | Set minimum entropy threshold in bits (default: 0 means no minimum) |
 | `--honey-password` | Generate a weak password designed to be compromised |
 | `--guesses-per-second N` | Set brute-force guesses per second (default: 1e9) |
-| `--save-file F` | Path to save generated passwords (default: saved_passwords.txt) |
+| `--save-file F` | Create a private file for generated passwords; fails if the file already exists |
 | `--help`, `-h` | Show this help message and exit |
 
 ---
@@ -104,6 +104,8 @@ A simple C++ password generator
 ```bash
 ./PasswordGenerator --length 16 --num-passwords 10 --save-file "my_passwords.txt"
 ```
+
+The file is created with access limited to the current user. Existing files, including symbolic links, are never overwritten. Choose a new path for each run.
 
 ### Pipe passwords into another command
 

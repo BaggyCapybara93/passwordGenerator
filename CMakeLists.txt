@@ -49,5 +49,19 @@ target_include_directories(PasswordGenerator PRIVATE
 target_link_libraries(PasswordGenerator PRIVATE Boost::program_options)
 
 if(WIN32)
-    target_link_libraries(PasswordGenerator PRIVATE bcrypt)
+    target_link_libraries(PasswordGenerator PRIVATE bcrypt advapi32)
+endif()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(file_output_test
+        tests/file_output_test.cpp
+        src/file_manager/file_manager_fs.cpp
+        src/file_manager/file_manager_io.cpp
+    )
+    target_include_directories(file_output_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    if(WIN32)
+        target_link_libraries(file_output_test PRIVATE advapi32)
+    endif()
+    add_test(NAME private_file_output COMMAND file_output_test)
 endif()

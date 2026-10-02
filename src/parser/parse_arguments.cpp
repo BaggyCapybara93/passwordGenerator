@@ -29,7 +29,7 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
             ("no-ambiguous", "Exclude ambiguous characters (0/O, 1/l/I)")
             ("honey-password", "Generate a weak password designed to be compromised")
             ("guesses-per-second", po::value<double>(&settings.guesses_per_second), "Set brute-force guesses per second (default: 1e9)")
-            ("save-file", po::value<std::string>(&settings.save_file), "Path to save generated passwords (default: saved_passwords.txt)");
+            ("save-file", po::value<std::string>(&settings.save_file), "Create a new private file for generated passwords (refuses existing files)");
 
         // Parse command line arguments
         po::variables_map vm;
@@ -159,7 +159,7 @@ void ParseArguments::print_help() {
     << "  --no-ambiguous          Exclude ambiguous characters (0/O, 1/l/I)\n"
     << "  --honey-password        Generate a weak password designed to be compromised\n"
     << "  --guesses-per-second N  Set brute-force guesses per second (default: 1e9)\n"
-    << "  --save-file F           Path to save generated passwords (default: saved_passwords.txt)\n"
+    << "  --save-file F           Create a private password file (refuses existing files)\n"
     << "  --help, -h              Show this help message and exit\n\n"
     << "Example:\n"
     << "  " << program_name << " --length 32 --no-special --num-passwords 5\n"
