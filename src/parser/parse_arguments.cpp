@@ -5,12 +5,12 @@
 #include <stdexcept>
 #include <string>
 
-bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
+ParseResult ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
     try {
         // Define command line options
         po::options_description desc("Allowed options");
         desc.add_options()
-            ("help", "Show help message")
+            ("help,h", "Show help message")
             ("length", po::value<size_t>(&settings.length), "Set desired password length (default: 12)")
             ("no-uppercase", "Disable uppercase requirement")
             ("no-lowercase", "Disable lowercase requirement")
@@ -39,7 +39,7 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
         // Check if help was requested
         if (vm.count("help")) {
             print_help();
-            return false;
+            return ParseResult::help;
         }
 
         // Handle seed option
@@ -80,17 +80,17 @@ bool ParseArguments::parse_args(int argc, char* argv[], Settings& settings) {
 
         // Validate settings
         if (!validate_settings(settings)) {
-            return false;
+            return ParseResult::error;
         }
 
-        return true;
+        return ParseResult::success;
 
     } catch (const po::error& e) {
         std::cerr << "Error parsing arguments: " << e.what() << "\n";
-        return false;
+        return ParseResult::error;
     } catch (const std::exception& e) {
         std::cerr << "Unexpected error: " << e.what() << "\n";
-        return false;
+        return ParseResult::error;
     }
 }
 

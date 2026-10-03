@@ -115,6 +115,8 @@ The file is created with access limited to the current user. Existing files, inc
 
 In quiet mode, stdout contains one password per line. Errors are written to stderr.
 
+Exit status is `0` for successful generation or help, `2` for invalid arguments or settings, and `1` for generation or file-saving failures.
+
 ---
 
 ## Minimum Entropy Feature

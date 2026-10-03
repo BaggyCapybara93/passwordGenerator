@@ -13,9 +13,9 @@ int main(int argc, char* arg[]){
     Settings settings;
     ParseArguments parser;
 
-    if (!parser.parse_args(argc, arg, settings)) {
-        return 0; // Exit if argument parsing failed or help was requested 
-    }
+    const ParseResult parse_result = parser.parse_args(argc, arg, settings);
+    if (parse_result == ParseResult::help) return 0;
+    if (parse_result == ParseResult::error) return 2;
 
     // Create and initialize the password generator
     auto settings_ptr = std::make_shared<Settings>(settings);

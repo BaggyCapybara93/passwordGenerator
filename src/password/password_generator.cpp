@@ -12,101 +12,66 @@
 #include "file_manager/file_manager.hpp"
 
 std::string Password_Generator::generate_password() {
-    try{
-        const std::string pool = build_effective_character_pool(*settings_);
-        if (pool.empty()) throw std::invalid_argument("No characters available for password generation.");
+    const std::string pool = build_effective_character_pool(*settings_);
+    if (pool.empty()) throw std::invalid_argument("No characters available for password generation.");
 
-        // Rejection sampling preserves a uniform distribution over the valid strings.
-        constexpr size_t max_candidate_attempts = 1000000;
-        for (size_t attempt = 0; attempt < max_candidate_attempts; ++attempt) {
-            std::string password;
-            password.reserve(settings_->length);
-            for (size_t i = 0; i < settings_->length; ++i) {
-                password.push_back(rng_->select_char(pool));
-            }
-            if (!password_meets_character_requirements(password, *settings_)) continue;
-            if (blacklist_ && blacklist_->find(password) != blacklist_->end()) continue;
-            return password;
+    // Rejection sampling preserves a uniform distribution over the valid strings.
+    constexpr size_t max_candidate_attempts = 1000000;
+    for (size_t attempt = 0; attempt < max_candidate_attempts; ++attempt) {
+        std::string password;
+        password.reserve(settings_->length);
+        for (size_t i = 0; i < settings_->length; ++i) {
+            password.push_back(rng_->select_char(pool));
         }
-        throw std::runtime_error("Could not sample a valid password after 1,000,000 attempts. The required character groups may be too rare in the selected pool.");
-    }catch(const std::exception& e) {
-        if (!settings_->quiet) {
-            std::cout << "Error generating password: " << e.what() << std::endl;
-        }
-        throw;
+        if (!password_meets_character_requirements(password, *settings_)) continue;
+        if (blacklist_ && blacklist_->find(password) != blacklist_->end()) continue;
+        return password;
     }
+    throw std::runtime_error("Could not sample a valid password after 1,000,000 attempts. The required character groups may be too rare in the selected pool.");
 }
 
 void Password_Generator::display_password(const std::string& password) {
-    try{
-        if (settings_->quiet) {
-            std::cout << password << '\n';
-            return;
-        }
-        const std::string security_rating = calculate_security_score(search_space_entropy_, *settings_);
+    if (settings_->quiet) {
+        std::cout << password << '\n';
+        return;
+    }
+    const std::string security_rating = calculate_security_score(search_space_entropy_, *settings_);
 
-        if (settings_.get()->is_honeypassword) {
-                UI::print_with_color("⚠️  HONEY PASSWORD WARNING: This password is intentionally weak!", UI::Color::Red, settings_.get()->no_color, true);
-                UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
-                UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, settings_.get()->no_color, true);
-                UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
-                
-                UI::print_with_color(password, UI::Color::Yellow, settings_.get()->no_color, true); // Yellow color for honey password
-                
-                UI::print_with_color("Strength: Intentionally weak (entropy estimate unavailable)", UI::Color::Red, settings_.get()->no_color, true);
-                UI::print_with_color("⚠️  This password is designed to be compromised for security testing purposes.", UI::Color::Red, settings_.get()->no_color, true);
-        } else {
-                UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
-                UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, settings_.get()->no_color, true);
-                UI::print_with_color("==================================================", UI::Color::Blue, settings_.get()->no_color, true);
-                
-                UI::print_with_color(password, UI::Color::Green, settings_.get()->no_color, true); // No newline after the password
-                
-                // Display the size of the valid output space, independent of the sampled value.
-                UI::print_with_color("Search-space entropy: " + std::to_string(search_space_entropy_) + " bits", UI::Color::Yellow, settings_.get()->no_color, true);
-                UI::print_with_color("Security Rating: " + security_rating, UI::Color::Yellow, settings_.get()->no_color, true);
-        }
-    }catch(const std::exception& e) {
-        if (!settings_->quiet) {
-            UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
-        }
-        throw;
+    if (settings_->is_honeypassword) {
+        UI::print_with_color("⚠️  HONEY PASSWORD WARNING: This password is intentionally weak!", UI::Color::Red, settings_->no_color, true);
+        UI::print_with_color("==================================================", UI::Color::Blue, settings_->no_color, true);
+        UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, settings_->no_color, true);
+        UI::print_with_color("==================================================", UI::Color::Blue, settings_->no_color, true);
+        UI::print_with_color(password, UI::Color::Yellow, settings_->no_color, true);
+        UI::print_with_color("Strength: Intentionally weak (entropy estimate unavailable)", UI::Color::Red, settings_->no_color, true);
+        UI::print_with_color("⚠️  This password is designed to be compromised for security testing purposes.", UI::Color::Red, settings_->no_color, true);
+    } else {
+        UI::print_with_color("==================================================", UI::Color::Blue, settings_->no_color, true);
+        UI::print_with_color("GENERATED PASSWORD:", UI::Color::Cyan, settings_->no_color, true);
+        UI::print_with_color("==================================================", UI::Color::Blue, settings_->no_color, true);
+        UI::print_with_color(password, UI::Color::Green, settings_->no_color, true);
+        // Display the size of the valid output space, independent of the sampled value.
+        UI::print_with_color("Search-space entropy: " + std::to_string(search_space_entropy_) + " bits", UI::Color::Yellow, settings_->no_color, true);
+        UI::print_with_color("Security Rating: " + security_rating, UI::Color::Yellow, settings_->no_color, true);
     }
 }
 
 void Password_Generator::generate_passwords(int num_passwords) {
-    try{
-        generated_passwords_.clear();
-        
-        for (int i = 1; i <= num_passwords; i++){
-            std::string password;
-            try {
-                password = settings_->is_honeypassword
-                    ? generate_honey_password(rng_, settings_)
-                    : generate_password();
-            } catch (const std::invalid_argument& e) {
-                if (settings_->quiet) throw;
-                UI::print_with_color("Error generating password: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
-                return;
-            } catch (const std::exception& e) {
-                if (settings_->quiet) throw;
-                UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
-                return;
-            }
+    generated_passwords_.clear();
 
-            display_password(password);
-            generated_passwords_.push_back(password);
-        }
+    for (int i = 0; i < num_passwords; ++i) {
+        const std::string password = settings_->is_honeypassword
+            ? generate_honey_password(rng_, settings_)
+            : generate_password();
+        display_password(password);
+        generated_passwords_.push_back(password);
+    }
 
-        if (!settings_->quiet) {
-            UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
+    if (!settings_->quiet) {
+        UI::print_with_color("Password generation complete.", UI::Color::Green, settings_.get()->no_color, true);
 
-            // Reset terminal colors
-            UI::reset_color(settings_.get()->no_color);
-        }
-    }catch(const std::exception& e) {
-        if (!settings_->quiet) UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
-        throw;
+        // Reset terminal colors
+        UI::reset_color(settings_.get()->no_color);
     }
 }
 
@@ -165,27 +130,17 @@ void Password_Generator::initialize() {
             save_passwords_to_file();
         }
     }catch(const std::exception& e) {
-        if (settings_->quiet) {
-            std::cerr << "Error: " << e.what() << '\n';
-        } else {
-            UI::print_with_color("An unexpected error occurred: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
-        }
+        std::cerr << "Error: " << e.what() << '\n';
         throw;
     }
 }
 
 void Password_Generator::save_passwords_to_file() {
-    try{
-        bool success = file_manager_->save_passwords(settings_.get()->save_file, generated_passwords_);
-        if (!success) {
-            throw std::runtime_error("No passwords were generated to save.");
-        }
-        if (settings_->quiet) {
-            return;
-        }
+    bool success = file_manager_->save_passwords(settings_.get()->save_file, generated_passwords_);
+    if (!success) {
+        throw std::runtime_error("No passwords were generated to save.");
+    }
+    if (!settings_->quiet) {
         UI::print_with_color("Passwords saved to " + settings_.get()->save_file + " successfully.", UI::Color::Green, settings_.get()->no_color, true);
-    } catch(const std::exception& e) {
-        if (!settings_->quiet) UI::print_with_color("An unexpected error occurred while saving passwords: " + std::string(e.what()), UI::Color::Red, settings_.get()->no_color, true);
-        throw;
     }
 }

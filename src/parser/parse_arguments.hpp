@@ -9,6 +9,8 @@
 
 namespace po = boost::program_options;
 
+enum class ParseResult { success, help, error };
+
 class ParseArguments{
     private:
         std::string program_name = "PasswordGenerator";
@@ -18,9 +20,9 @@ class ParseArguments{
          * @param argc Number of command line arguments
          * @param argv Array of command line arguments
          * @param settings Reference to Settings struct to populate
-         * @return true if parsing succeeded, false if help was requested or error occurred
+         * @return Whether parsing succeeded, help was requested, or an error occurred
          */
-        bool parse_args(int argc, char* argv[], Settings& settings);
+        ParseResult parse_args(int argc, char* argv[], Settings& settings);
 
         /**
          * @brief Validate settings and build the final character pool

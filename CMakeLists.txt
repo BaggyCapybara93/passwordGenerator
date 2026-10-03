@@ -64,4 +64,9 @@ if(BUILD_TESTING)
         target_link_libraries(file_output_test PRIVATE advapi32)
     endif()
     add_test(NAME private_file_output COMMAND file_output_test)
+    add_test(NAME cli_exit_codes
+        COMMAND ${CMAKE_COMMAND}
+            -DGENERATOR=$<TARGET_FILE:PasswordGenerator>
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/cli_exit_codes.cmake
+    )
 endif()
